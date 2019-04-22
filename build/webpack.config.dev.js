@@ -1,26 +1,20 @@
 const path = require('path');
+const merge = require('webpack-merge');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 
-module.exports = {
+const baseConfig = require('./webpack.config.base.js');
+
+const INDEX_HTML = path.resolve(__dirname, '../src/views/index.html');
+
+module.exports = merge(baseConfig, {
     devtool: 'eval-cheap-module-source-map',
-    entry: './src/index.js',
     devServer: {
         port: 8080,
         contentBase: path.join(__dirname, 'dist')
     },
-    node: {
-        fs: 'empty'
-    },
     module: {
         rules: [{
-            test: /\.js$/,
-            exclude: /node_modules/,
-            loader: 'babel-loader',
-            options: {
-                presets: ['env']
-            }
-        }, {
             test: /\.(scss|css)$/,
             use: [{
                 // creates style nodes from JS strings
@@ -54,13 +48,12 @@ module.exports = {
                     limit: 8192
                 }
             }]
-        }
-               ],
+        }],
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: './src/views/index.html',
+            template: INDEX_HTML,
             inject: true
         })
     ]
-};
+});

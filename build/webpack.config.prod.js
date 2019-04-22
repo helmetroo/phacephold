@@ -6,27 +6,17 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
-const buildPath = path.resolve(__dirname, 'dist');
+const BUILD_PATH = path.resolve(__dirname, 'dist');
+const INDEX_HTML = path.resolve(__dirname, '../src/views/index.html');
 
-module.exports = {
+module.exports = merge(baseConfig, {
     devtool: 'source-map',
-    entry: './src/index.js',
     output: {
         filename: '[name].[hash:20].js',
-        path: buildPath
-    },
-    node: {
-        fs: 'empty'
+        path: BUILD_PATH
     },
     module: {
-        rules: [ {
-            test: /\.js$/,
-            exclude: /node_modules/,
-            loader: 'babel-loader',
-            options: {
-                presets: ['env']
-            }
-        }, {
+        rules: [{
             test: /\.(scss|css|sass)$/,
             use: [{
                 loader: MiniCssExtractPlugin.loader
@@ -65,11 +55,11 @@ module.exports = {
     },
     plugins: [
         new HtmlWebpackPlugin({
-            template: './src/views/index.html',
+            template: INDEX_HTML,
             // Inject the js bundle at the end of the body of the given template
             inject: 'body',
         }),
-        new CleanWebpackPlugin(buildPath),
+        new CleanWebpackPlugin(BUILD_PATH),
         new FaviconsWebpackPlugin({
             // Your source logo
             logo: './src/assets/icon.png',
