@@ -22,11 +22,11 @@
     </head>
     <body>
         <div class="container">
-            <div class="videoWrapper" id="videoWrapper">
+            <div class="video-wrapper" id="video-wrapper">
                 <div class="fps" id="fps"></div>
-                <video muted></video>
-            </div>
-            <div class="log" id="log">
+                <video id="video" class="video" muted autoplay></video>
+                <canvas class="video-data" id="video-data"></canvas>
+                <canvas class="video-overlay" id="video-overlay"></canvas>
             </div>
         </div>
     </body>

@@ -8,7 +8,7 @@ const baseConfig = require('./webpack.config.base.js');
 const INDEX_HTML = path.resolve(__dirname, '../src/views/index.html');
 
 module.exports = merge(baseConfig, {
-    devtool: 'eval-cheap-module-source-map',
+    devtool: 'inline-source-map',
     devServer: {
         port: 8080,
         contentBase: path.join(__dirname, 'dist')
