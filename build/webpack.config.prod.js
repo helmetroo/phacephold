@@ -1,4 +1,5 @@
 const path = require('path');
+const merge = require('webpack-merge');
 
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
 const CleanWebpackPlugin = require('clean-webpack-plugin'); //installed via npm
@@ -6,7 +7,10 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
-const BUILD_PATH = path.resolve(__dirname, 'dist');
+const baseConfig = require('./webpack.config.base.js');
+const createPostcssConfig = require('./postcss.config');
+
+const BUILD_PATH = path.resolve(__dirname, '../dist');
 const INDEX_HTML = path.resolve(__dirname, '../src/views/index.html');
 
 module.exports = merge(baseConfig, {
@@ -30,7 +34,8 @@ module.exports = merge(baseConfig, {
                 // Runs compiled CSS through postcss for vendor prefixing
                 loader: 'postcss-loader',
                 options: {
-                    sourceMap: true
+                    sourceMap: true,
+                    plugins: createPostcssConfig
                 }
             }, {
                 // compiles Sass to CSS
@@ -59,7 +64,7 @@ module.exports = merge(baseConfig, {
             // Inject the js bundle at the end of the body of the given template
             inject: 'body',
         }),
-        new CleanWebpackPlugin(BUILD_PATH),
+        new CleanWebpackPlugin(),
         new FaviconsWebpackPlugin({
             // Your source logo
             logo: './src/assets/icon.png',
@@ -105,4 +110,4 @@ module.exports = merge(baseConfig, {
             canPrint: true
         })
     ]
-};
+});

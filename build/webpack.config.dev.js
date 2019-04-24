@@ -11,7 +11,7 @@ module.exports = merge(baseConfig, {
     devtool: 'inline-source-map',
     devServer: {
         port: 8080,
-        contentBase: path.join(__dirname, 'dist')
+        contentBase: path.join(__dirname, '../dist')
     },
     module: {
         rules: [{
