@@ -1,6 +1,9 @@
 import FaceDetector, { FaceLandmarksResult } from './face-detector';
 import Point from './point';
 
+// UI
+import FPSCounter from './fps-counter';
+
 class App {
     private static readonly VIDEO_ID = '#video';
     private static readonly DATA_CANVAS_ID = '#video-data';
@@ -11,7 +14,7 @@ class App {
     private video: HTMLVideoElement | null = null;
     private overlayCanvas: HTMLCanvasElement | null = null;
 
-    private lastUpdate: number = 0;
+    private fpsCounter: FPSCounter = new FPSCounter();
 
     public async init() {
         await this.initVideo();
@@ -62,7 +65,7 @@ class App {
         this.clear();
 
         if(faceLandmarkResult) {
-            this.faceDetector.drawDebugOverlay(this.video!, this.overlayCanvas!, faceLandmarkResult);
+            //this.faceDetector.drawDebugOverlay(this.video!, this.overlayCanvas!, faceLandmarkResult);
 
             const mouth = faceLandmarkResult.landmarks.getMouth()
                 .map(Point.fromFaceApiPoint);
@@ -80,13 +83,12 @@ class App {
             this.makeEyeFlap(leftEye, rightEye, jawOutline);
         }
 
-        this.updateFps();
+        this.fpsCounter.update();
 
         this.beginDetectFaces();
     }
 
     private makeEyeFlap(leftEye: Point[], rightEye: Point[], jawOutline: Point[]) {
-        //(xmin, ymin), (xmin, ymax), (xmax, ymax), (xmax, ymin)
         const [leftEyeMin, leftEyeMax] = Point.getMinMaxForPoints(leftEye);
         const leftEyeCenter = Point.getCenter(leftEye);
 
@@ -103,32 +105,39 @@ class App {
 
         ctx.save();
         ctx.beginPath();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = 'green';
 
-        // TODO refactor redundanct calculations
+        ctx.translate(eyeCenter.x, eyeCenter.y);
+        ctx.scale(1.5, 1.5);
+        ctx.translate(-eyeCenter.x, -eyeCenter.y);
+        // TODO translate to get closer towards mouth
+
         const eyeHeightFactor = 4; // Tweakable.
+        const eyeMinYDiff = rightEyeMin.y - leftEyeMin.y;
+        const eyeMaxYDiff = rightEyeMax.y - leftEyeMax.y;
         const leftEyeMinX = jawMin.x;
-        const leftEyeMinY = leftEyeMin.y - (rightEyeMin.y - leftEyeMin.y)*eyeHeightFactor;
-        const leftEyeMaxY = leftEyeMax.y + (rightEyeMax.y - leftEyeMax.y)*eyeHeightFactor;
+        const leftEyeMinY = leftEyeMin.y - (eyeMinYDiff * eyeHeightFactor);
+        const leftEyeMaxY = leftEyeMax.y + (eyeMaxYDiff * eyeHeightFactor);
         const rightEyeMaxX = jawMax.x;
-        const rightEyeMinY = rightEyeMin.y - (rightEyeMin.y - leftEyeMin.y)*eyeHeightFactor;
-        const rightEyeMaxY = rightEyeMax.y + (rightEyeMax.y - leftEyeMax.y)*eyeHeightFactor;
+        const rightEyeMinY = rightEyeMin.y - (eyeMinYDiff * eyeHeightFactor);
+        const rightEyeMaxY = rightEyeMax.y + (eyeMaxYDiff * eyeHeightFactor);
 
         ctx.moveTo(leftEyeMinX, leftEyeMinY);
         ctx.lineTo(rightEyeMaxX, rightEyeMinY);
         ctx.lineTo(rightEyeMaxX, rightEyeMaxY);
         ctx.lineTo(leftEyeMinX, leftEyeMaxY);
         ctx.lineTo(leftEyeMinX, leftEyeMinY);
-        ctx.stroke();
+
+        ctx.fill();
+        ctx.clip();
+        ctx.drawImage(this.video!, 0, 0);
+
         ctx.restore();
     }
 
     private makeMouthFlap(mouth: Point[], jawOutline: Point[]) {
         const [mouthMin, mouthMax] = Point.getMinMaxForPoints(mouth);
-
-        // TODO redundant
         const [jawMin, jawMax] = Point.getMinMaxForPoints(jawOutline);
+        const mouthCenter = Point.getCenter([mouthMin, mouthMax, jawMin, jawMax]);
 
         const ctx = this.overlayCanvas!.getContext('2d');
         if(!ctx)
@@ -136,15 +145,20 @@ class App {
 
         ctx.save();
         ctx.beginPath();
-        ctx.lineWidth = 3;
-        ctx.strokeStyle = 'yellow';
 
-        const mouthHeightFactor = 4;
+        ctx.translate(mouthCenter.x, mouthCenter.y);
+        ctx.scale(1.5, 1.5);
+        ctx.translate(-mouthCenter.x, -mouthCenter.y);
+        // TODO translate to get closer towards eyes
+
         ctx.rect(
             jawMin.x, mouthMin.y,
             jawMax.x - jawMin.x, mouthMax.y - mouthMin.y
         );
-        ctx.stroke();
+        ctx.fill();
+        ctx.clip();
+        ctx.drawImage(this.video!, 0, 0);
+
         ctx.restore();
     }
 
@@ -154,16 +168,6 @@ class App {
             return;
 
         ctx.clearRect(0, 0, this.overlayCanvas!.width, this.overlayCanvas!.height);
-    }
-
-    private updateFps() {
-        const now = window.performance.now();
-        const interval = now - this.lastUpdate;
-        this.lastUpdate = now;
-
-        const fps = Math.round(1000 / interval);
-
-        document.querySelector('#fps')!.textContent = `${fps} fps`;
     }
 }
 

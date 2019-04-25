@@ -1,7 +1,5 @@
 import { Point as FaceApiPoint } from 'face-api.js';
 
-export type MinMax = [Point, Point];
-
 export default class Point {
     private _x: number = 0;
     private _y: number = 0;
@@ -110,3 +108,8 @@ export default class Point {
         );
     }
 }
+
+export abstract class Min extends Point {};
+export abstract class Max extends Point {};
+
+export type MinMax = [Min, Max];

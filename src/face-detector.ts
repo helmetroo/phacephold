@@ -1,40 +1,28 @@
 import * as faceapi from 'face-api.js';
 
-// Inferred from emacs typescript-mode
-export type FaceLandmarksResult =
-    faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }, faceapi.FaceLandmarks68>;
-
 export type FaceLandmarks =
     faceapi.FaceLandmarks68;
 
-export interface Dimensions {
-    width: number,
-    height: number
-};
-
-export type IDimensions =
-    HTMLVideoElement | Dimensions;
+// Inferred from emacs typescript-mode
+export type FaceLandmarksResult =
+    faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }, FaceLandmarks>;
 
 export default class FaceDetector {
+    private static readonly MODEL_LOCATION: string = '/data';
+    private static readonly DEFAULT_INPUT_SIZE: number = 512;
+    private static readonly DEFAULT_SCORE_THRESHOLD: number = 0.5;
+
     private loaded: boolean = false;
     private options: faceapi.TinyFaceDetectorOptions
-        = new faceapi.TinyFaceDetectorOptions();
-
-    constructor(options?: faceapi.TinyFaceDetectorOptions) {
-        if(!options) {
-            options = <faceapi.TinyFaceDetectorOptions>{
-                inputSize: 512,
-                scoreThreshold: 0.5
-            };
-        }
-
-        this.options = new faceapi.TinyFaceDetectorOptions(options);
-    }
+        = new faceapi.TinyFaceDetectorOptions({
+            inputSize: FaceDetector.DEFAULT_INPUT_SIZE,
+            scoreThreshold: FaceDetector.DEFAULT_SCORE_THRESHOLD
+        });
 
     private async loadModel() {
         return Promise.all([
-            faceapi.loadTinyFaceDetectorModel('/data'),
-            faceapi.loadFaceLandmarkModel('/data'),
+            faceapi.loadTinyFaceDetectorModel(FaceDetector.MODEL_LOCATION),
+            faceapi.loadFaceLandmarkModel(FaceDetector.MODEL_LOCATION),
         ]);
     }
 
@@ -57,33 +45,14 @@ export default class FaceDetector {
         return faceLandmarks;
     }
 
-    private static resizeCanvasAndResults(
-        dimensions: IDimensions,
-        canvas: HTMLCanvasElement,
-        landmarks: FaceLandmarks
-    ) {
-        const { width, height } = (dimensions instanceof HTMLVideoElement)
-            ? faceapi.getMediaDimensions(dimensions)
-            : dimensions
-        canvas.width = width
-        canvas.height = height
-
-        // resize detections (and landmarks) in case
-        // displayed image is smaller than original size
-        return landmarks.forSize(width, height);
-    }
-
     public drawDebugOverlay(
-        dimensions: IDimensions,
+        videoElement: HTMLVideoElement,
         canvas: HTMLCanvasElement,
         faceLandmarkResult: FaceLandmarksResult
     ) {
         const {
             landmarks: faceLandmarks
         } = faceLandmarkResult;
-
-        const resizedFaceLandmarks =
-            FaceDetector.resizeCanvasAndResults(dimensions, canvas, faceLandmarks);
 
         const drawLandmarksOptions = {
             lineWidth: 2,
