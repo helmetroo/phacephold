@@ -9,7 +9,7 @@ export type FaceLandmarksResult =
 
 export default class FaceDetector {
     private static readonly MODEL_LOCATION: string = '/data';
-    private static readonly DEFAULT_INPUT_SIZE: number = 512;
+    private static readonly DEFAULT_INPUT_SIZE: number = 224;
     private static readonly DEFAULT_SCORE_THRESHOLD: number = 0.5;
 
     private loaded: boolean = false;
