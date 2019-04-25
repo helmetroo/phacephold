@@ -1,12 +1,11 @@
 import FaceDetector, { FaceLandmarksResult } from './face-detector';
-import Point from './point';
+import Point, { MinMax } from './point';
 
 // UI
 import FPSCounter from './fps-counter';
 
 class App {
     private static readonly VIDEO_ID = '#video';
-    private static readonly DATA_CANVAS_ID = '#video-data';
     private static readonly OVERLAY_CANVAS_ID = '#video-overlay';
 
     private faceDetector: FaceDetector = new FaceDetector();
@@ -67,20 +66,34 @@ class App {
         if(faceLandmarkResult) {
             //this.faceDetector.drawDebugOverlay(this.video!, this.overlayCanvas!, faceLandmarkResult);
 
+            // Mouth flap
             const mouth = faceLandmarkResult.landmarks.getMouth()
                 .map(Point.fromFaceApiPoint);
+            const mouthMinMax = Point.getMinMaxForPoints(mouth);
 
             const jawOutline = faceLandmarkResult.landmarks.getJawOutline()
                 .map(Point.fromFaceApiPoint);
+            const jawMinMax = Point.getMinMaxForPoints(jawOutline);
 
             const leftEye = faceLandmarkResult.landmarks.getLeftEye()
                 .map(Point.fromFaceApiPoint);
+            const leftEyeMinMax = Point.getMinMaxForPoints(leftEye);
+            const leftEyeCenter = Point.getCenter(leftEye);
 
             const rightEye = faceLandmarkResult.landmarks.getRightEye()
                 .map(Point.fromFaceApiPoint);
+            const rightEyeMinMax = Point.getMinMaxForPoints(rightEye);
+            const rightEyeCenter = Point.getCenter(rightEye);
 
-            this.makeMouthFlap(mouth, jawOutline);
-            this.makeEyeFlap(leftEye, rightEye, jawOutline);
+            const eyeAngle = -Point.angleBetween(leftEyeCenter, rightEyeCenter);
+            const eyeCenter = Point.getCenter([leftEyeCenter, rightEyeCenter]);
+
+            const [, mouthMax] = mouthMinMax;
+            const [eyeMin] = rightEyeMinMax;
+            const mouthEyeDistance = mouthMax.y - eyeMin.y;
+
+            this.makeEyeFlap(leftEyeMinMax, rightEyeMinMax, jawMinMax, eyeAngle, eyeCenter, mouthEyeDistance);
+            this.makeMouthFlap(mouthMinMax, jawMinMax, eyeAngle, mouthEyeDistance);
         }
 
         this.fpsCounter.update();
@@ -88,16 +101,40 @@ class App {
         this.beginDetectFaces();
     }
 
-    private makeEyeFlap(leftEye: Point[], rightEye: Point[], jawOutline: Point[]) {
-        const [leftEyeMin, leftEyeMax] = Point.getMinMaxForPoints(leftEye);
-        const leftEyeCenter = Point.getCenter(leftEye);
+    private createMaskFromJawOutline(jawOutline: Point[]) {
+        const jawCenter = Point.getCenter(jawOutline);
 
-        const [rightEyeMin, rightEyeMax] = Point.getMinMaxForPoints(rightEye);
-        const rightEyeCenter = Point.getCenter(rightEye);
+        const ctx = this.overlayCanvas!.getContext('2d');
+        if(!ctx)
+            return;
 
-        const [jawMin, jawMax] = Point.getMinMaxForPoints(jawOutline);
+        ctx.beginPath();
 
-        const eyeCenter = Point.getCenter([leftEyeCenter, rightEyeCenter]);
+        ctx.translate(jawCenter.x, jawCenter.y);
+        ctx.scale(2, 2);
+        ctx.translate(-jawCenter.x, -jawCenter.y);
+
+        ctx.moveTo(jawOutline[0].x, jawOutline[0].y);
+        for(let index = 1; index < jawOutline.length; ++index) {
+            ctx.lineTo(jawOutline[index].x, jawOutline[index].y);
+        }
+        ctx.lineTo(jawOutline[0].x, jawOutline[0].y);
+
+        ctx.fill();
+        ctx.clip();
+    }
+
+    private makeEyeFlap(
+        leftEyeMinMax: MinMax,
+        rightEyeMinMax: MinMax,
+        jawMinMax: MinMax,
+        eyeAngle: number,
+        eyeCenter: Point,
+        mouthEyeDistance: number
+    ) {
+        const [jawMin, jawMax] = jawMinMax;
+        const [leftEyeMin, leftEyeMax] = leftEyeMinMax;
+        const [rightEyeMin, rightEyeMax] = rightEyeMinMax;
 
         const ctx = this.overlayCanvas!.getContext('2d');
         if(!ctx)
@@ -106,26 +143,25 @@ class App {
         ctx.save();
         ctx.beginPath();
 
+        const jawWidth = jawMax.x - jawMin.x;
+        const origEyeFlapWidth = rightEyeMax.x - leftEyeMin.x;
+        const jawWidthFactor = jawWidth / (origEyeFlapWidth);
+        const eyeJawFlapWidth = origEyeFlapWidth * jawWidthFactor;
+
+        const heightFactor = 8;
+        const eyeFlapHeight = (rightEyeMax.y - rightEyeMin.y) * heightFactor;
         ctx.translate(eyeCenter.x, eyeCenter.y);
-        ctx.scale(1.5, 1.5);
+        ctx.rotate(-eyeAngle);
+        ctx.scale(1.7, 1.7);
+        ctx.translate(0, mouthEyeDistance / 6);
+        ctx.rect(
+            leftEyeMin.x - eyeCenter.x - (eyeJawFlapWidth / 4),
+            leftEyeMin.y - eyeCenter.y  - (eyeJawFlapWidth / 4),
+            eyeJawFlapWidth,
+            eyeFlapHeight
+        );
+        ctx.rotate(eyeAngle);
         ctx.translate(-eyeCenter.x, -eyeCenter.y);
-        // TODO translate to get closer towards mouth
-
-        const eyeHeightFactor = 4; // Tweakable.
-        const eyeMinYDiff = rightEyeMin.y - leftEyeMin.y;
-        const eyeMaxYDiff = rightEyeMax.y - leftEyeMax.y;
-        const leftEyeMinX = jawMin.x;
-        const leftEyeMinY = leftEyeMin.y - (eyeMinYDiff * eyeHeightFactor);
-        const leftEyeMaxY = leftEyeMax.y + (eyeMaxYDiff * eyeHeightFactor);
-        const rightEyeMaxX = jawMax.x;
-        const rightEyeMinY = rightEyeMin.y - (eyeMinYDiff * eyeHeightFactor);
-        const rightEyeMaxY = rightEyeMax.y + (eyeMaxYDiff * eyeHeightFactor);
-
-        ctx.moveTo(leftEyeMinX, leftEyeMinY);
-        ctx.lineTo(rightEyeMaxX, rightEyeMinY);
-        ctx.lineTo(rightEyeMaxX, rightEyeMaxY);
-        ctx.lineTo(leftEyeMinX, leftEyeMaxY);
-        ctx.lineTo(leftEyeMinX, leftEyeMinY);
 
         ctx.fill();
         ctx.clip();
@@ -134,9 +170,14 @@ class App {
         ctx.restore();
     }
 
-    private makeMouthFlap(mouth: Point[], jawOutline: Point[]) {
-        const [mouthMin, mouthMax] = Point.getMinMaxForPoints(mouth);
-        const [jawMin, jawMax] = Point.getMinMaxForPoints(jawOutline);
+    private makeMouthFlap(
+        mouthMinMax: MinMax,
+        jawMinMax: MinMax,
+        eyeAngle: number,
+        mouthEyeDistance: number
+    ) {
+        const [mouthMin, mouthMax] = mouthMinMax;
+        const [jawMin, jawMax] = jawMinMax;
         const mouthCenter = Point.getCenter([mouthMin, mouthMax, jawMin, jawMax]);
 
         const ctx = this.overlayCanvas!.getContext('2d');
@@ -147,14 +188,18 @@ class App {
         ctx.beginPath();
 
         ctx.translate(mouthCenter.x, mouthCenter.y);
-        ctx.scale(1.5, 1.5);
-        ctx.translate(-mouthCenter.x, -mouthCenter.y);
-        // TODO translate to get closer towards eyes
-
+        ctx.rotate(-eyeAngle);
+        ctx.scale(1.7, 1.7);
+        //ctx.translate(0, mouthEyeDistance / 2);
         ctx.rect(
-            jawMin.x, mouthMin.y,
-            jawMax.x - jawMin.x, mouthMax.y - mouthMin.y
+            jawMin.x - mouthCenter.x,
+            mouthMin.y - mouthCenter.y,
+            jawMax.x - jawMin.x,
+            mouthMax.y - mouthMin.y
         );
+        ctx.rotate(eyeAngle);
+        ctx.translate(-mouthCenter.x, -mouthCenter.y);
+
         ctx.fill();
         ctx.clip();
         ctx.drawImage(this.video!, 0, 0);

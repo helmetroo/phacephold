@@ -86,26 +86,8 @@ export default class Point {
     }
 
     public static angleBetween(a: Point, b: Point) {
-        /*
-        const aLength = Point.magnitude(a);
-        const bLength = Point.magnitude(b);
-
-        const aDotB = Point.dotProduct(a, b);
-
-        const cosAngle = aDotB / (aLength * bLength);
-        if(cosAngle >= 1.0)
-            return 0;
-
-        if(cosAngle <= -1.0)
-            return Math.PI;
-
-        return Math.acos(cosAngle);
-        */
-
-        return Math.atan2(
-            Point.crossProduct(a, b),
-            Point.dotProduct(a, b)
-        );
+        const vectBetween = b.subtract(a);
+        return Math.atan(vectBetween.y / vectBetween.x);
     }
 }
 
