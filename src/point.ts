@@ -94,4 +94,4 @@ export default class Point {
 export abstract class Min extends Point {};
 export abstract class Max extends Point {};
 
-export type MinMax = [Min, Max];
+export type MinMax = readonly [Min, Max];
