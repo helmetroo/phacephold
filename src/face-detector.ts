@@ -1,43 +1,59 @@
-import * as faceapi from 'face-api.js';
+import {
+    FaceLandmarks68,
+    WithFaceLandmarks,
+    FaceDetection,
+    TinyFaceDetectorOptions
+} from 'face-api.js';
 
 export type FaceLandmarks =
-    faceapi.FaceLandmarks68;
+    FaceLandmarks68;
 
 // Inferred from emacs typescript-mode
 export type FaceLandmarksResult =
-    faceapi.WithFaceLandmarks<{ detection: faceapi.FaceDetection }, FaceLandmarks>;
+    WithFaceLandmarks<{ detection: FaceDetection }, FaceLandmarks>;
 
 export default class FaceDetector {
     private static readonly MODEL_LOCATION: string = '/data';
     private static readonly DEFAULT_INPUT_SIZE: number = 224;
     private static readonly DEFAULT_SCORE_THRESHOLD: number = 0.5;
 
-    private loaded: boolean = false;
-    private options: faceapi.TinyFaceDetectorOptions
-        = new faceapi.TinyFaceDetectorOptions({
+    private faceapi: typeof import('face-api.js') | null = null;
+
+    private loadedFaceApi: boolean = false;
+    private loadedFaceApiModel: boolean = false;
+
+    private options: TinyFaceDetectorOptions
+        = new TinyFaceDetectorOptions({
             inputSize: FaceDetector.DEFAULT_INPUT_SIZE,
             scoreThreshold: FaceDetector.DEFAULT_SCORE_THRESHOLD
         });
 
+    private async loadLibrary() {
+        this.faceapi = await import(
+            /* webpackChunkName: "face-api" */
+            /* webpackPreload: true */
+            'face-api.js'
+        );
+
+        this.loadedFaceApi = true;
+    }
+
     private async loadModel() {
-        return Promise.all([
-            faceapi.loadTinyFaceDetectorModel(FaceDetector.MODEL_LOCATION),
-            faceapi.loadFaceLandmarkModel(FaceDetector.MODEL_LOCATION),
+        await Promise.all([
+            this.faceapi!.loadTinyFaceDetectorModel(FaceDetector.MODEL_LOCATION),
+            this.faceapi!.loadFaceLandmarkModel(FaceDetector.MODEL_LOCATION),
         ]);
+
+        this.loadedFaceApiModel = true;
     }
 
     public async init() {
-        try {
-            await this.loadModel();
-        } catch(err) {
-            // Flag error
-        }
-
-        this.loaded = true;
+        await this.loadLibrary();
+        await this.loadModel();
     }
 
     public async findFaceLandmarks(videoElement: HTMLVideoElement) {
-        const face = faceapi.detectSingleFace(videoElement, this.options);
+        const face = this.faceapi!.detectSingleFace(videoElement, this.options);
         const faceLandmarks = await face.withFaceLandmarks();
         if(!faceLandmarks)
             return null;
@@ -46,7 +62,6 @@ export default class FaceDetector {
     }
 
     public drawDebugOverlay(
-        videoElement: HTMLVideoElement,
         canvas: HTMLCanvasElement,
         faceLandmarkResult: FaceLandmarksResult
     ) {
@@ -60,6 +75,6 @@ export default class FaceDetector {
             color: 'green'
         };
 
-        faceapi.drawLandmarks(canvas, faceLandmarks, drawLandmarksOptions);
+        this.faceapi!.drawLandmarks(canvas, faceLandmarks, drawLandmarksOptions);
     }
 }

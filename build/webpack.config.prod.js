@@ -2,7 +2,7 @@ const path = require('path');
 const merge = require('webpack-merge');
 
 const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
-const CleanWebpackPlugin = require('clean-webpack-plugin'); //installed via npm
+const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
@@ -16,7 +16,6 @@ const INDEX_HTML = path.resolve(__dirname, '../src/views/index.html');
 module.exports = merge(baseConfig, {
     devtool: 'source-map',
     output: {
-        filename: '[name].[hash:20].js',
         path: BUILD_PATH
     },
     module: {

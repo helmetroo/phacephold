@@ -1,3 +1,5 @@
+require('./styles/fps-counter');
+
 export default class FPSCounter {
     private static readonly ELEMENT_ID = '#fps';
     private fpsElement: Element | null = null;

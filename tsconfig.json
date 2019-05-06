@@ -4,7 +4,6 @@
         "lib": [
             "dom",
             "dom.iterable",
-            "webworker",
             "esnext"
         ],
         "types": [
@@ -14,6 +13,7 @@
         "skipLibCheck": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
+        "importHelpers": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "module": "esnext",

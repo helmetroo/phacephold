@@ -2,6 +2,7 @@ import FaceDetector, { FaceLandmarksResult } from './face-detector';
 import Point, { MinMax } from './point';
 
 // UI
+import Loader from './loader';
 import FPSCounter from './fps-counter';
 
 class App {
@@ -13,11 +14,15 @@ class App {
     private video: HTMLVideoElement | null = null;
     private overlayCanvas: HTMLCanvasElement | null = null;
 
+    private loaded: boolean = false;
+
+    private loader: Loader = new Loader();
     private fpsCounter: FPSCounter = new FPSCounter();
 
     public async init() {
         await this.initVideo();
         await this.initFaceDetector();
+
         this.initOverlayCanvas();
         this.beginDetectFaces();
     }
@@ -64,7 +69,7 @@ class App {
         this.clear();
 
         if(faceLandmarkResult) {
-            //this.faceDetector.drawDebugOverlay(this.video!, this.overlayCanvas!, faceLandmarkResult);
+            //this.faceDetector.drawDebugOverlay(this.overlayCanvas!, faceLandmarkResult);
 
             // Mouth flap
             const mouth = faceLandmarkResult.landmarks.getMouth()
@@ -98,7 +103,15 @@ class App {
 
         this.fpsCounter.update();
 
+        this.hideLoaderIfNotHidden();
         this.beginDetectFaces();
+    }
+
+    private hideLoaderIfNotHidden() {
+        if(!this.loaded) {
+            this.loaded = true;
+            this.loader.hide();
+        }
     }
 
     private createMaskFromJawOutline(jawOutline: Point[]) {

@@ -4,27 +4,26 @@ const CopyWebpackPlugin = require('copy-webpack-plugin');
 
 const ENTRY = path.resolve(__dirname, '../src/index.ts');
 const STATIC_DIR = path.resolve(__dirname, '../assets');
-const LIB_DIR = path.resolve(__dirname, '../lib');
-const NODE_MODULES_DIR = path.resolve(__dirname, '../node_modules');
+const NODE_MODULES_DIR = /node_modules/;
 
 module.exports = {
     entry: ENTRY,
     node: {
         fs: 'empty'
     },
+    output: {
+        filename: '[name].[hash:20].js',
+        chunkFilename: '[name].[hash:20].chunk.js'
+    },
+    optimization: {
+        splitChunks: {
+            chunks: 'all'
+        }
+    },
     module: {
         rules: [{
-            test: /-worker\.ts$/,
-            exclude: /node_modules/,
-            use: {
-                loader: 'worker-loader',
-                options: {
-                    name: '[name].worker.[hash].js'
-                }
-            }
-        }, {
             test: /\.ts$/,
-            exclude: /node_modules/,
+            exclude: NODE_MODULES_DIR,
             use: {
                 loader: 'ts-loader'
             }
@@ -41,10 +40,6 @@ module.exports = {
             '.js',
             '.scss',
             '.css'
-        ],
-
-        alias: {
-            'opencv': path.resolve(__dirname, '../lib/opencv'),
-        }
+        ]
     }
 };
