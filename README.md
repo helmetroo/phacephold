@@ -79,9 +79,14 @@ It also allows you to run the app from other devices on your network, say a mobi
 
 ### SSL Certificate
 
-To test a production build, you will need to create a root SSL certificate as there is functionality (fetching from your webcam) requiring the build to be served via HTTPS.
-A quick way to create one to preview the production build by following [this tutorial](https://medium.freecodecamp.org/how-to-get-https-working-on-your-local-development-environment-in-5-minutes-7af615770eec). You will need `openssl` installed.
-By default, `http-server` will look for a certificate file (`server.crt`), and a key file (`server.key`). You can change the filenames that will be searched for in `package.json` under the `preview` script.
+To preview a production build, you will need to host a root SSL certificate as there is functionality (fetching from your webcam) requiring the build to be served via HTTPS.
+You can quickly create a self-signed one for development purposes by running 
+```bash 
+npm run create-cert
+```
+
+You can also follow [this tutorial](https://medium.freecodecamp.org/how-to-get-https-working-on-your-local-development-environment-in-5-minutes-7af615770eec). You will need `openssl` installed to run through the tutorial.
+By default, `http-server` will look for a certificate and a private key file. You can change the filenames `http-server` will use for your private key and certificate in `package.json` under `config.https`.
 
 ### Run preview server
 

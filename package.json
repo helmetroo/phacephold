@@ -8,11 +8,18 @@
         "dev": "npm run develop",
         "develop": "webpack-dev-server --config build/webpack.config.dev.js --mode development",
         "build": "webpack --config build/webpack.config.prod.js --mode production",
-        "preview": "npm run build && http-server dist --ssl --cert server.crt --key server.key"
+        "preview": "npm run build && http-server dist --ssl --cert $npm_package_config_https_certificate --key $npm_package_config_https_key",
+        "create-cert": "node ./src/scripts/create-self-signed-certificate.js"
+    },
+    "config": {
+        "https": {
+            "certificate": "server.crt",
+            "key": "server.key"
+        }
     },
     "repository": {
         "type": "git",
-        "url": ""
+        "url": "https://github.com/helmetroo/phacephold.git"
     },
     "keywords": [],
     "author": "Samuel Sweet",
@@ -28,6 +35,7 @@
     },
     "devDependencies": {
         "@types/node": "^11.13.7",
+        "app-root-path": "^2.2.1",
         "autoprefixer": "^9.5.1",
         "babel-loader": "^8.0.5",
         "clean-webpack-plugin": "^2.0.1",
@@ -43,6 +51,7 @@
         "optimize-css-assets-webpack-plugin": "^5.0.1",
         "postcss-loader": "^3.0.0",
         "sass-loader": "^7.1.0",
+        "selfsigned": "^1.10.4",
         "source-map-loader": "^0.2.4",
         "style-loader": "^0.23.1",
         "ts-loader": "^5.4.3",
