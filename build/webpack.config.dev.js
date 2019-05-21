@@ -2,6 +2,8 @@ const path = require('path');
 const merge = require('webpack-merge');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
+const WorkboxPlugin = require('workbox-webpack-plugin');
+const WebpackPwaManifest = require('webpack-pwa-manifest');
 
 const baseConfig = require('./webpack.config.base.js');
 
@@ -54,6 +56,24 @@ module.exports = merge(baseConfig, {
         new HtmlWebpackPlugin({
             template: INDEX_HTML,
             inject: true
-        })
+        }),
+        new WorkboxPlugin.GenerateSW({
+            clientsClaim: true,
+            skipWaiting: true
+        }),
+        new WebpackPwaManifest({
+            name: 'phacephold',
+            orientation: 'portrait',
+            display: 'standalone',
+            shortname: 'phold',
+            description: 'PHOLD YOUR PHACE',
+            theme_color: '#000',
+            background_color: '#000',
+            inject: true,
+            icons: [{
+                src: './src/assets/icon.png',
+                sizes: [96, 128, 192, 256, 384, 512] // multiple sizes
+            }]
+        }),
     ]
 });

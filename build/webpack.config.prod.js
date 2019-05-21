@@ -6,6 +6,8 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
+const WorkboxPlugin = require('workbox-webpack-plugin');
+const WebpackPwaManifest = require('webpack-pwa-manifest');
 
 const baseConfig = require('./webpack.config.base.js');
 const createPostcssConfig = require('./postcss.config');
@@ -58,12 +60,30 @@ module.exports = merge(baseConfig, {
         }]
     },
     plugins: [
+        new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
             template: INDEX_HTML,
             // Inject the js bundle at the end of the body of the given template
             inject: 'body',
         }),
-        new CleanWebpackPlugin(),
+        new WorkboxPlugin.GenerateSW({
+            clientsClaim: true,
+            skipWaiting: true
+        }),
+        new WebpackPwaManifest({
+            name: 'phacephold',
+            orientation: 'portrait',
+            display: 'standalone',
+            shortname: 'phold',
+            description: 'PHOLD YOUR PHACE',
+            theme_color: '#000',
+            background_color: '#000',
+            inject: true,
+            icons: [{
+                src: './src/assets/icon.png',
+                sizes: [96, 128, 192, 256, 384, 512] // multiple sizes
+            }]
+        }),
         new FaviconsWebpackPlugin({
             // Your source logo
             logo: './src/assets/icon.png',
@@ -77,8 +97,7 @@ module.exports = merge(baseConfig, {
             // favicon background color (see https://github.com/haydenbleasel/favicons#usage)
             background: '#fff',
             // favicon app title (see https://github.com/haydenbleasel/favicons#usage)
-            title: 'phacephold}}',
-
+            title: 'phacephold',
             // which icons should be generated (see https://github.com/haydenbleasel/favicons#usage)
             icons: {
                 android: true,
