@@ -73,6 +73,8 @@ class App {
 
         this.clear();
 
+        this.drawVideo();
+
         if(faceLandmarkResult) {
             // Eye flap
             const leftEye = faceLandmarkResult.landmarks.getLeftEye()
@@ -157,6 +159,15 @@ class App {
         ];
 
         return eyeBoundBox;
+    }
+
+    private drawVideo() {
+        const ctx = this.overlayCanvas!.getContext('2d');
+        if(!ctx)
+            return;
+
+        ctx.drawImage(this.video!, 0, 0,
+                      this.video!.offsetWidth, this.video!.offsetHeight);
     }
 
     private drawFlaps(

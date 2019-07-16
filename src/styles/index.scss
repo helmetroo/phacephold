@@ -24,16 +24,12 @@ body {
     .video {
         width: 100%;
         max-width: 800px;
+        visibility: hidden;
     }
 
-    .video-data,
     .video-overlay {
         position: absolute;
         top: 0;
         left: 0;
-    }
-
-    .video-data {
-        display: none;
     }
 }
