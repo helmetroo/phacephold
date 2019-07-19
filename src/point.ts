@@ -47,6 +47,14 @@ export default class Point {
         return new Point(newX, newY);
     }
 
+    public magnitude() {
+        return Point.magnitude(this);
+    }
+
+    public rotate(angle: number) {
+        return Point.rotate(this, angle);
+    }
+
     public static getMinMaxForPoints(points: Point[]): MinMax {
         const absoluteMax = new Point(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
         const absoluteMin = new Point(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);
@@ -88,6 +96,30 @@ export default class Point {
     public static angleBetween(a: Point, b: Point) {
         const vectBetween = b.subtract(a);
         return Math.atan(vectBetween.y / vectBetween.x);
+    }
+
+    public static distanceBetween(a: Point, b: Point) {
+        const xDiff = (b.x - a.x);
+        const xDiffSquared = xDiff * xDiff;
+
+        const yDiff = (b.y - a.y);
+        const yDiffSquared = yDiff * yDiff;
+
+        const distance = Math.sqrt(
+            xDiffSquared + yDiffSquared
+        );
+
+        return distance;
+    }
+
+    public static rotate(point: Point, angle: number) {
+        const newX = point.x * Math.cos(angle)
+            - point.y * Math.sin(angle);
+
+        const newY = point.x * Math.sin(angle)
+            + point.y * Math.cos(angle);
+
+        return new Point(newX, newY);
     }
 }
 
