@@ -1,4 +1,4 @@
-import { Face, Eyes } from './face-metadata-extractor';
+import { Face, Eyes, Mouth } from './face-metadata-extractor';
 import Point from './point';
 
 export default class FaceFlapsDrawer {
@@ -30,17 +30,21 @@ export default class FaceFlapsDrawer {
     }
 
     private drawFlaps(face: Face) {
-        this.drawEyesFlap(face);
+        const {
+            eyes,
+            mouth
+        } = face;
+
+        this.drawEyesFlap(eyes);
+        this.drawMouthFlap(mouth, eyes.angle);
     }
 
-    private drawEyesFlap(face: Face) {
+    private drawEyesFlap(eyes: Eyes) {
         const ctx = this.ctx;
         const {
-            eyes: {
-                center: eyeCenter,
-                angle: eyeAngle
-            }
-        } = face;
+            center: eyeCenter,
+            angle: eyeAngle
+        } = eyes;
 
         ctx.save();
         ctx.beginPath();
@@ -49,7 +53,7 @@ export default class FaceFlapsDrawer {
         ctx.rotate(-eyeAngle);
         ctx.scale(this.eyeFlapScale, this.eyeFlapScale);
 
-        const eyesFlap = this.getEyesFlap(face.eyes);
+        const eyesFlap = this.getEyesFlap(eyes);
         ctx.fill(eyesFlap);
         ctx.clip(eyesFlap);
 
@@ -184,5 +188,65 @@ export default class FaceFlapsDrawer {
         );
 
         return eyesFlap;
+    }
+
+    private drawMouthFlap(mouth: Mouth, eyeAngle: number) {
+        const ctx = this.ctx;
+
+        const {
+            center: mouthCenter
+        } = mouth;
+
+        ctx.save();
+        ctx.beginPath();
+
+        ctx.translate(mouthCenter.x, mouthCenter.y);
+        ctx.rotate(-eyeAngle);
+        ctx.scale(this.mouthFlapScale, this.mouthFlapScale);
+
+        const mouthFlap = this.getMouthFlap(mouth);
+        ctx.fill(mouthFlap);
+        ctx.clip(mouthFlap);
+
+        ctx.rotate(eyeAngle);
+        ctx.translate(-mouthCenter.x, -mouthCenter.y);
+
+        ctx.drawImage(this.sourceVideo, 0, 0);
+
+        ctx.restore();
+    }
+
+    private getMouthFlap(mouth: Mouth) {
+        const mouthFlap = new Path2D();
+        const {
+            center: mouthCenter,
+            minMax: mouthMinMax,
+        } = mouth;
+
+        const [mouthMin, mouthMax] = mouthMinMax;
+
+        const mouthWidth = mouthMax.x - mouthMin.x;
+        const mouthWidthOffset = 2 * mouthWidth;
+
+        const mouthHeight = mouthMax.y - mouthMin.y;
+        const mouthHeightOffset = 0.5 * mouthHeight;
+
+        const mouthOffsetVec = new Point(mouthWidthOffset / 2, mouthHeightOffset / 2);
+
+        const newMouthMin = mouthMin
+            .subtract(mouthOffsetVec)
+            .subtract(mouthCenter);
+
+        const newMouthMax = mouthMax
+            .subtract(mouthCenter);
+
+        mouthFlap.rect(
+            newMouthMin.x,
+            newMouthMin.y,
+            (mouthMax.x - mouthMin.x) + mouthWidthOffset,
+            (mouthMax.y - mouthMin.y) + mouthHeightOffset
+        );
+
+        return mouthFlap;
     }
 }

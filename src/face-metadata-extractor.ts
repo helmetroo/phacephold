@@ -22,6 +22,7 @@ export interface Eyes {
 };
 
 export interface Mouth {
+    readonly center: Point,
     readonly minMax: MinMax
 };
 
@@ -100,12 +101,14 @@ export default class FaceMetadataExtractor {
     }
 
     private static toMouthMetadata(faceLandmarks: FaceLandmarks68) {
-        const mouth = faceLandmarks.getMouth()
+        const mouthPoints = faceLandmarks.getMouth()
             .map(Point.fromFaceApiPoint);
 
-        const mouthMinMax = Point.getMinMaxForPoints(mouth);
+        const mouthCenter = Point.getCenter(mouthPoints);
+        const mouthMinMax = Point.getMinMaxForPoints(mouthPoints);
 
         const mouthMetadata: Mouth = {
+            center: mouthCenter,
             minMax: mouthMinMax
         };
 
