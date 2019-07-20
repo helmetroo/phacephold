@@ -55,6 +55,13 @@ export default class Point {
         return Point.rotate(this, angle);
     }
 
+    public reflectXAxis() {
+        const newX = this.x;
+        const newY = -this.y;
+
+        return new Point(newX, newY);
+    }
+
     public static getMinMaxForPoints(points: Point[]): MinMax {
         const absoluteMax = new Point(Number.POSITIVE_INFINITY, Number.POSITIVE_INFINITY);
         const absoluteMin = new Point(Number.NEGATIVE_INFINITY, Number.NEGATIVE_INFINITY);

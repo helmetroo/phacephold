@@ -1,8 +1,7 @@
-import { Face, Eyes, Mouth } from './face-metadata-extractor';
+import { Face, Eyes, Mouth, Head } from './face-metadata-extractor';
 import Point from './point';
 
 export default class FaceFlapsDrawer {
-    // Possibly tweakable attrs
     private eyeFlapScale: number = 1.35;
     private mouthFlapScale: number = 1.35;
     private overallScale: number = 1.25;
@@ -16,9 +15,12 @@ export default class FaceFlapsDrawer {
         const ctx = this.ctx;
 
         ctx.save();
-        ctx.save();
 
-        const faceCenter = face.head.center;
+        const {
+            head: {
+                center: faceCenter
+            }
+        } = face;
         ctx.translate(faceCenter.x, faceCenter.y);
         ctx.scale(this.overallScale, this.overallScale);
         ctx.translate(-faceCenter.x, -faceCenter.y);
@@ -26,30 +28,36 @@ export default class FaceFlapsDrawer {
         this.drawFlaps(face);
 
         ctx.restore();
-        ctx.restore();
     }
 
     private drawFlaps(face: Face) {
         const {
+            head,
             eyes,
             mouth
         } = face;
 
-        this.drawEyesFlap(eyes);
+        this.drawHeadMask(head);
         this.drawMouthFlap(mouth, eyes.angle);
+        this.drawEyesFlap(eyes);
     }
 
     private drawEyesFlap(eyes: Eyes) {
         const ctx = this.ctx;
         const {
             center: eyeCenter,
-            angle: eyeAngle
+            angle: eyeAngle,
+            height: eyeHeight
         } = eyes;
 
         ctx.save();
         ctx.beginPath();
 
         ctx.translate(eyeCenter.x, eyeCenter.y);
+
+        const eyeOffset = new Point(0, eyeHeight * 0.2);
+        ctx.translate(eyeOffset.x, eyeOffset.y);
+
         ctx.rotate(-eyeAngle);
         ctx.scale(this.eyeFlapScale, this.eyeFlapScale);
 
@@ -82,99 +90,20 @@ export default class FaceFlapsDrawer {
         const [rightEyeMin, rightEyeMax] = rightEyeMinMax;
         const absAngle = Math.abs(eyeAngle);
 
-        const horizEyeHeightOffset = new Point(0.35 * eyeHeight, 0);
-        const vertEyeHeightOffset = new Point(0, eyeHeight * 0.2);
-        const eyeHeightOffset = vertEyeHeightOffset
-            .add(horizEyeHeightOffset);
-
-        // Scaling
-        /*
-        const eyeMinMaxXDiff = (eyeMax.x - eyeMin.x);
-        const eyeMinMaxXDiffSq = eyeMinMaxXDiff * eyeMinMaxXDiff;
-
-        const eyeMinMaxYDiff = (eyeMax.y - eyeMin.y);
-        const eyeMinMaxYDiffSq = eyeMinMaxYDiff * eyeMinMaxYDiff;
-
-        const eyeHeightSq = (0.75 * 0.75) * (eyeHeight * eyeHeight);
-        const scalingFactor = Math.sqrt(
-            eyeHeightSq / (eyeMinMaxXDiffSq + eyeMinMaxYDiffSq)
+        const eyeHeightScale = new Point(
+            0.35 * eyeHeight,
+            0.15 * eyeHeight
         );
-        */
 
-        // Unflattened code
-        /*
-        const unrotatedEyeMin = Point.rotate(eyeMin, -absAngle);
-        const newUnrotatedEyeMin = unrotatedEyeMin.subtract(eyeHeightOffset);
-        const rotatedEyeMin = Point.rotate(newUnrotatedEyeMin, absAngle);
-        const newEyeMin = rotatedEyeMin.subtract(eyeCenter);
-
-        const unrotatedEyeMax = Point.rotate(eyeMax, -absAngle);
-        const newUnrotatedEyeMax = unrotatedEyeMax.add(eyeHeightOffset);
-        const rotatedEyeMax = Point.rotate(newUnrotatedEyeMax, absAngle);
-        const newEyeMax = rotatedEyeMax.subtract(eyeCenter);
-        */
-
-        /*
         const newEyeMin = eyeMin
             .rotate(-absAngle)
-            .subtract(eyeHeightOffset)
+            .subtract(eyeHeightScale)
             .rotate(absAngle)
             .subtract(eyeCenter);
 
         const newEyeMax = eyeMax
             .rotate(-absAngle)
-            .add(eyeHeightOffset)
-            .rotate(absAngle)
-            .subtract(eyeCenter);
-
-        eyesFlap.moveTo(newEyeMin.x, newEyeMin.y);
-        eyesFlap.lineTo(newEyeMax.x, newEyeMin.y);
-        eyesFlap.lineTo(newEyeMax.x, newEyeMax.y);
-        eyesFlap.lineTo(newEyeMin.x, newEyeMax.y);
-        eyesFlap.lineTo(newEyeMin.x, newEyeMin.y);
-        */
-
-        /*
-        const newLeftEyeMin = leftEyeMin
-            .rotate(-absAngle)
-            .subtract(eyeHeightOffset)
-            .rotate(absAngle)
-            .subtract(eyeCenter);
-
-        const newLeftEyeMax = leftEyeMax
-            .rotate(-absAngle)
-            .add(eyeHeightOffset)
-            .rotate(absAngle)
-            .subtract(eyeCenter);
-
-        const newRightEyeMin = rightEyeMin
-            .rotate(-absAngle)
-            .subtract(eyeHeightOffset)
-            .rotate(absAngle)
-            .subtract(eyeCenter);
-
-        const newRightEyeMax = rightEyeMax
-            .rotate(-absAngle)
-            .add(eyeHeightOffset)
-            .rotate(absAngle)
-            .subtract(eyeCenter);
-
-        eyesFlap.moveTo(newLeftEyeMin.x, newLeftEyeMin.y);
-        eyesFlap.lineTo(newRightEyeMax.x, newRightEyeMin.y);
-        eyesFlap.lineTo(newRightEyeMax.x, newRightEyeMax.y);
-        eyesFlap.lineTo(newLeftEyeMin.x, newLeftEyeMax.y);
-        eyesFlap.lineTo(newLeftEyeMin.x, newLeftEyeMin.y);
-        */
-
-        const newEyeMin = eyeMin
-            .rotate(-absAngle)
-            .subtract(eyeHeightOffset)
-            .rotate(absAngle)
-            .subtract(eyeCenter);
-
-        const newEyeMax = eyeMax
-            .rotate(-absAngle)
-            .add(eyeHeightOffset)
+            .add(eyeHeightScale)
             .rotate(absAngle)
             .subtract(eyeCenter);
 
@@ -194,13 +123,18 @@ export default class FaceFlapsDrawer {
         const ctx = this.ctx;
 
         const {
-            center: mouthCenter
+            center: mouthCenter,
+            height: mouthHeight
         } = mouth;
 
         ctx.save();
         ctx.beginPath();
 
         ctx.translate(mouthCenter.x, mouthCenter.y);
+
+        const mouthOffset = new Point(0, -mouthHeight * 0.25);
+        ctx.translate(mouthOffset.x, mouthOffset.y);
+
         ctx.rotate(-eyeAngle);
         ctx.scale(this.mouthFlapScale, this.mouthFlapScale);
 
@@ -221,32 +155,70 @@ export default class FaceFlapsDrawer {
         const {
             center: mouthCenter,
             minMax: mouthMinMax,
+            height: mouthHeight
         } = mouth;
 
         const [mouthMin, mouthMax] = mouthMinMax;
 
         const mouthWidth = mouthMax.x - mouthMin.x;
-        const mouthWidthOffset = 2 * mouthWidth;
+        const mouthWidthScale = 2 * mouthWidth;
+        const mouthHeightScale = 0.5 * mouthHeight;
 
-        const mouthHeight = mouthMax.y - mouthMin.y;
-        const mouthHeightOffset = 0.5 * mouthHeight;
-
-        const mouthOffsetVec = new Point(mouthWidthOffset / 2, mouthHeightOffset / 2);
+        const mouthScaleVec = new Point(
+            mouthWidthScale / 2,
+            mouthHeightScale / 2
+        );
 
         const newMouthMin = mouthMin
-            .subtract(mouthOffsetVec)
+            .subtract(mouthScaleVec)
             .subtract(mouthCenter);
 
         const newMouthMax = mouthMax
+            .add(mouthScaleVec)
             .subtract(mouthCenter);
 
         mouthFlap.rect(
             newMouthMin.x,
             newMouthMin.y,
-            (mouthMax.x - mouthMin.x) + mouthWidthOffset,
-            (mouthMax.y - mouthMin.y) + mouthHeightOffset
+            (mouthMax.x - mouthMin.x) + mouthWidthScale,
+            (mouthMax.y - mouthMin.y) + mouthHeightScale
         );
 
         return mouthFlap;
+    }
+
+    private getHeadMask(head: Head) {
+        const headMask = new Path2D();
+        const {
+            points: bottomHeadPoints
+        } = head;
+
+        const topHeadPoints =
+            bottomHeadPoints.map(point => point.reflectXAxis());
+
+        const headPoints = [
+            ...bottomHeadPoints,
+            ...topHeadPoints
+        ];
+
+        const firstHeadPoint = headPoints[0];
+        headMask.moveTo(firstHeadPoint.x, firstHeadPoint.y);
+
+        const numHeadPoints = headPoints.length;
+        for(let index = 1; index < numHeadPoints; ++index) {
+            const currentPoint = headPoints[index];
+            headMask.lineTo(currentPoint.x, currentPoint.y);
+        }
+
+        headMask.lineTo(firstHeadPoint.x, firstHeadPoint.y);
+
+        return headMask;
+    }
+
+    private drawHeadMask(head: Head) {
+        const ctx = this.ctx;
+        const headMask = this.getHeadMask(head);
+
+        ctx.clip(headMask, 'evenodd');
     }
 }
