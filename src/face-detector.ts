@@ -4,6 +4,7 @@ import {
     FaceDetection,
     TinyFaceDetectorOptions
 } from 'face-api.js';
+import Source from './source';
 
 export type FaceLandmarks =
     FaceLandmarks68;
@@ -52,8 +53,9 @@ export default class FaceDetector {
         await this.loadModel();
     }
 
-    public async findFaceLandmarks(videoElement: HTMLVideoElement) {
-        const face = this.faceapi!.detectSingleFace(videoElement, this.options);
+    public async findFaceLandmarks(source: Source) {
+        const canvasImageSource = source.getProcessableSource();
+        const face = this.faceapi!.detectSingleFace(canvasImageSource, this.options);
         const faceLandmarks = await face.withFaceLandmarks();
         if(!faceLandmarks)
             return null;

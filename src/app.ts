@@ -1,129 +1,86 @@
-import { FaceLandmarks68 } from 'face-api.js';
-
-import FaceDetector, { FaceLandmarksResult } from './face-detector';
-import Point, { MinMax } from './point';
+import Camera from './camera';
+import RenderCanvas from './render-canvas';
+import DisplayCanvas from './display-canvas';
+import FaceDetector from './face-detector';
+import FaceFlapsOverlayEffect from './face-flaps-overlay-effect';
 
 // UI
 import Loader from './loader';
 import FPSCounter from './fps-counter';
-import FaceFlapsDrawer from './face-flaps-drawer';
-import FaceMetadataExtractor from './face-metadata-extractor';
 
-class App {
-    private static readonly VIDEO_ID = '#video';
-    private static readonly OVERLAY_CANVAS_ID = '#video-overlay';
+export default class App {
+    // Sources
+    private camera: Camera | null = null;
+
+    // Effects
+    private faceFlapsEffect: FaceFlapsOverlayEffect | null = null;
 
     private faceDetector: FaceDetector = new FaceDetector();
-    private faceFlapsDrawer: FaceFlapsDrawer | null = null;
 
-    private video: HTMLVideoElement | null = null;
-    private overlayCanvas: HTMLCanvasElement | null = null;
+    private renderCanvas: RenderCanvas | null = null;
+    private displayCanvas: DisplayCanvas | null = null;
 
     private loaded: boolean = false;
 
+    // UI
     private loader: Loader = new Loader();
     private fpsCounter: FPSCounter = new FPSCounter();
 
-    // Possibly tweakable attrs
-    private eyeFlapScale: number = 1.5;
-    private mouthFlapScale: number = 1.5;
-    private overallScale: number = 1.25;
-
     public async init() {
-        await this.initVideo();
+        await this.initCamera();
         await this.initFaceDetector();
+        this.initFaceFlapsEffect();
+        this.initCanvasses();
 
-        this.initOverlayCanvas();
-        this.initFlapsDrawer();
-        this.beginDraw();
-        this.hideLoaderIfNotHidden();
+        this.beginRender();
+
+        this.hideLoader();
     }
 
-    private async initVideo() {
-        const stream = await (navigator as Navigator).mediaDevices
-            .getUserMedia({ video: true });
+    private async initCamera() {
+        this.camera = new Camera();
+        await this.camera.load();
 
-        this.video =
-            document.querySelector<HTMLVideoElement>(App.VIDEO_ID)!;
-        this.video.srcObject = stream;
-
-        return new Promise((resolve, reject) => {
-            this.video!.onloadedmetadata = resolve;
-        });
+        this.camera.play();
     }
 
     private async initFaceDetector() {
-        return this.faceDetector.init();
+        await this.faceDetector.init();
     }
 
-    private initOverlayCanvas() {
-        this.overlayCanvas = this.initCanvas(App.OVERLAY_CANVAS_ID);
+    private initFaceFlapsEffect() {
+        this.faceFlapsEffect =
+            new FaceFlapsOverlayEffect(this.faceDetector, this.camera!);
     }
 
-    private initCanvas(id: string) {
-        const canvas =
-            document.querySelector<HTMLCanvasElement>(id)!;
+    private initCanvasses() {
+        this.renderCanvas = new RenderCanvas();
+        this.renderCanvas.setSource(this.camera!);
+        this.renderCanvas.setEffect(this.faceFlapsEffect!);
 
-        canvas.setAttribute('width', String(this.video!.offsetWidth));
-        canvas.setAttribute('height', String(this.video!.offsetHeight));
-
-        return canvas;
+        this.displayCanvas = new DisplayCanvas(this.renderCanvas);
     }
 
-    private initFlapsDrawer() {
-        const ctx = this.overlayCanvas!.getContext('2d')!;
-        const sourceVideo = this.video!;
-
-        this.faceFlapsDrawer = new FaceFlapsDrawer(ctx, sourceVideo);
+    private beginRender() {
+        const render = this.render.bind(this);
+        requestAnimationFrame(render);
     }
 
-    private beginDraw() {
-        requestAnimationFrame(this.draw.bind(this));
-    }
+    private async render() {
+        if(!this.renderCanvas
+           || !this.displayCanvas)
+            return;
 
-    private async draw() {
-        const faceLandmarkResult =
-            await this.faceDetector.findFaceLandmarks(this.video!);
-
-        this.clear();
-        this.drawVideo();
-
-        if(faceLandmarkResult)
-            this.drawFlaps(faceLandmarkResult.landmarks);
+        await this.renderCanvas.draw();
+        this.displayCanvas.drawRenderCanvasFrame();
 
         this.fpsCounter.update();
 
-        this.beginDraw();
+        this.beginRender();
     }
 
-    private drawVideo() {
-        const ctx = this.overlayCanvas!.getContext('2d');
-        if(!ctx)
-            return;
-
-        ctx.drawImage(this.video!, 0, 0,
-                      this.video!.offsetWidth, this.video!.offsetHeight);
-    }
-
-    private drawFlaps(landmarks: FaceLandmarks68) {
-        const face = FaceMetadataExtractor.extract(landmarks);
-        this.faceFlapsDrawer!.draw(face);
-    }
-
-    private hideLoaderIfNotHidden() {
-        if(!this.loaded) {
-            this.loaded = true;
-            this.loader.hide();
-        }
-    }
-
-    private clear() {
-        const ctx = this.overlayCanvas!.getContext('2d');
-        if(!ctx)
-            return;
-
-        ctx.clearRect(0, 0, this.overlayCanvas!.width, this.overlayCanvas!.height);
+    private hideLoader() {
+        this.loaded = true;
+        this.loader.hide();
     }
 }
-
-export default App;

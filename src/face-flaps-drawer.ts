@@ -1,5 +1,6 @@
 import { Face, Eyes, Mouth, Head } from './face-metadata-extractor';
 import Point from './point';
+import Source from './source';
 
 export default class FaceFlapsDrawer {
     private eyeFlapScale: number = 1.35;
@@ -7,12 +8,13 @@ export default class FaceFlapsDrawer {
     private overallScale: number = 1.25;
 
     constructor(
-        private readonly ctx: CanvasRenderingContext2D,
-        private readonly sourceVideo: HTMLVideoElement
+        private source: Source
     ) {}
 
-    public draw(face: Face) {
-        const ctx = this.ctx;
+    public draw(canvas: HTMLCanvasElement, face: Face) {
+        const ctx = canvas.getContext('2d');
+        if(!ctx || !this.source)
+            return;
 
         ctx.save();
 
@@ -25,25 +27,32 @@ export default class FaceFlapsDrawer {
         ctx.scale(this.overallScale, this.overallScale);
         ctx.translate(-faceCenter.x, -faceCenter.y);
 
-        this.drawFlaps(face);
+        this.drawFlaps(ctx, face);
 
         ctx.restore();
     }
 
-    private drawFlaps(face: Face) {
+    private drawSource(ctx: CanvasRenderingContext2D) {
+        if(!this.source)
+            return;
+
+        const canvasImageSource = this.source.getProcessableSource();
+        ctx.drawImage(canvasImageSource, 0, 0);
+    }
+
+    private drawFlaps(ctx: CanvasRenderingContext2D, face: Face) {
         const {
             head,
             eyes,
             mouth
         } = face;
 
-        this.drawHeadMask(head);
-        this.drawMouthFlap(mouth, eyes.angle);
-        this.drawEyesFlap(eyes);
+        this.drawHeadMask(ctx, head);
+        this.drawMouthFlap(ctx, mouth, eyes.angle);
+        this.drawEyesFlap(ctx, eyes);
     }
 
-    private drawEyesFlap(eyes: Eyes) {
-        const ctx = this.ctx;
+    private drawEyesFlap(ctx: CanvasRenderingContext2D, eyes: Eyes) {
         const {
             center: eyeCenter,
             angle: eyeAngle,
@@ -68,7 +77,7 @@ export default class FaceFlapsDrawer {
         ctx.rotate(eyeAngle);
         ctx.translate(-eyeCenter.x, -eyeCenter.y);
 
-        ctx.drawImage(this.sourceVideo, 0, 0);
+        this.drawSource(ctx);
 
         ctx.restore();
     }
@@ -119,9 +128,7 @@ export default class FaceFlapsDrawer {
         return eyesFlap;
     }
 
-    private drawMouthFlap(mouth: Mouth, eyeAngle: number) {
-        const ctx = this.ctx;
-
+    private drawMouthFlap(ctx: CanvasRenderingContext2D, mouth: Mouth, eyeAngle: number) {
         const {
             center: mouthCenter,
             height: mouthHeight
@@ -145,7 +152,7 @@ export default class FaceFlapsDrawer {
         ctx.rotate(eyeAngle);
         ctx.translate(-mouthCenter.x, -mouthCenter.y);
 
-        ctx.drawImage(this.sourceVideo, 0, 0);
+        this.drawSource(ctx);
 
         ctx.restore();
     }
@@ -215,8 +222,7 @@ export default class FaceFlapsDrawer {
         return headMask;
     }
 
-    private drawHeadMask(head: Head) {
-        const ctx = this.ctx;
+    private drawHeadMask(ctx: CanvasRenderingContext2D, head: Head) {
         const headMask = this.getHeadMask(head);
 
         ctx.clip(headMask, 'evenodd');

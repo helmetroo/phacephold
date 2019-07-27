@@ -14,22 +14,51 @@ body {
     width: 100%;
     height: 100%;
     display: flex;
-    justify-content: center;
-    align-items: center;
+    flex-flow: row;
+    padding: 1rem;
+    box-sizing: border-box;
+
+    @media only screen and (orientation: portrait) {
+        flex-flow: column;
+    }
 }
 
-.video-wrapper {
+.display-container,
+.ui-container {
     position: relative;
+    margin: 0.666rem;
+}
 
-    .video {
-        width: 100%;
-        max-width: 800px;
-        visibility: hidden;
-    }
+$display-container-width: 83%;
+.display-container {
+    width: $display-container-width;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 
-    .video-overlay {
+    .display-video {
         position: absolute;
         top: 0;
         left: 0;
+    }
+
+    @media only screen and (orientation: portrait) {
+        width: auto;
+        height: $display-container-width;
+    }
+}
+
+.ui-container {
+    width: 100% - $display-container-width;
+    height: auto;
+    background-color: #666;
+    display: flex;
+    flex-flow: column;
+
+    @media only screen and (orientation: portrait) {
+        width: auto;
+        height: 100% - $display-container-width;
+        flex-flow: row;
     }
 }
