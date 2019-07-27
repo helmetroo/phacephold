@@ -30,7 +30,9 @@ export default class Camera extends Source {
 
                     height: {
                         ideal: 2160
-                    }
+                    },
+
+                    facingMode: 'user'
                 }
             });
 
