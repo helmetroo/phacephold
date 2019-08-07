@@ -1,9 +1,7 @@
 const path = require('path');
 const merge = require('webpack-merge');
 
-const FaviconsWebpackPlugin = require('favicons-webpack-plugin')
-const CleanWebpackPlugin = require('clean-webpack-plugin');
-const HtmlWebpackPlugin = require('html-webpack-plugin');
+const FaviconsWebpackPlugin = require('favicons-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 const WorkboxPlugin = require('workbox-webpack-plugin');
@@ -12,16 +10,19 @@ const WebpackPwaManifest = require('webpack-pwa-manifest');
 const baseConfig = require('./webpack.config.base.js');
 const createPostcssConfig = require('./postcss.config');
 
-const BUILD_PATH = path.resolve(__dirname, '../dist');
-const INDEX_HTML = path.resolve(__dirname, '../src/views/index.html');
+const NODE_MODULES_DIR = /node_modules/;
 
 module.exports = merge(baseConfig, {
-    devtool: 'source-map',
-    output: {
-        path: BUILD_PATH
-    },
+    mode: 'production',
+    devtool: 'none',
     module: {
         rules: [{
+            test: /\.ts$/,
+            exclude: NODE_MODULES_DIR,
+            use: {
+                loader: 'babel-loader',
+            }
+        }, {
             test: /\.(scss|css|sass)$/,
             use: [{
                 loader: MiniCssExtractPlugin.loader
@@ -60,12 +61,6 @@ module.exports = merge(baseConfig, {
         }]
     },
     plugins: [
-        new CleanWebpackPlugin(),
-        new HtmlWebpackPlugin({
-            template: INDEX_HTML,
-            // Inject the js bundle at the end of the body of the given template
-            inject: 'body',
-        }),
         new WorkboxPlugin.GenerateSW({
             clientsClaim: true,
             skipWaiting: true
@@ -74,7 +69,7 @@ module.exports = merge(baseConfig, {
             name: 'phacephold',
             orientation: 'portrait',
             display: 'standalone',
-            shortname: 'phold',
+            shortname: 'phacephold',
             description: 'PHOLD YOUR PHACE',
             theme_color: '#000',
             background_color: '#000',

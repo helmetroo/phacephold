@@ -1,6 +1,14 @@
 {
     "compilerOptions": {
-        "target": "es5",
+        "target": "esnext",
+        "baseUrl": "src",
+        "paths": {
+            "@components/*": ["components/*/script.ts"],
+            "@assets/*": ["assets/*"],
+            "@classes/*": ["classes/*"],
+            "@utils/*": ["utils/*"],
+            "@global-styles": ["global-styles/index.scss"]
+        },
         "lib": [
             "dom",
             "dom.iterable",
@@ -9,19 +17,21 @@
         "types": [
             "node"
         ],
+        "noEmit": true,
         "allowJs": true,
-        "skipLibCheck": true,
-        "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
         "importHelpers": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "module": "esnext",
         "moduleResolution": "node",
+        "esModuleInterop": true,
+        "isolatedModules": true,
         "resolveJsonModule": true,
-        "sourceMap": true
+        "sourceMap": true,
+        "experimentalDecorators": true
     },
     "include": [
-        "src"
+        "src/**/*"
     ]
 }

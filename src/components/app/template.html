@@ -1,0 +1,18 @@
+<phold-dialog
+    ?active="${showingErrorMessage}"
+    .message="${errorMessage}"
+    @dialog.close="${onDialogClose}">
+</phold-dialog>
+<div class="display-container" id="display-container">
+    <phold-viewer
+        ?running="${runningViewer}"
+        .source="${currentSource}"
+        .effect="${currentEffect}"
+        @viewer.ready="${onViewerReady}">
+    </phold-viewer>
+</div>
+<div class="ui-container" id="ui-container">
+    <phold-shutter
+        @shutter.press="${onPressShutter}">
+    </phold-shutter>
+</div>

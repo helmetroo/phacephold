@@ -1,0 +1,51 @@
+:host {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shutter-button {
+    padding: 0;
+    border: none;
+    font: inherit;
+    color: inherit;
+    outline: none;
+    background-color: transparent;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+
+    &:hover {
+        .shutter {
+            width: 75%;
+            height: 75%;
+        }
+    }
+
+    &:active {
+        .shutter {
+            background-color: #aaa;
+        }
+    }
+}
+
+.shutter-ring {
+    box-sizing: border-box;
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    border: 8px solid #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.shutter {
+    border-radius: 50%;
+    background-color: #fff;
+    width: 90%;
+    height: 90%;
+    transition: width 0.25s, height 0.25s;
+}

@@ -1,0 +1,35 @@
+:host {
+    background-color: #444;
+    border-radius: 8px;
+    padding: 0.5em;
+}
+
+$ready-color: #2cd13f;
+$unready-color: #000;
+
+.circle,
+.status {
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.circle {
+    display: inline-block;
+    border-radius: 50%;
+    width: 12px;
+    height: 12px;
+
+    &.face-visible {
+        background-color: $ready-color;
+    }
+
+    &.no-face-visible {
+        background-color: $unready-color;
+    }
+}
+
+.status {
+    font-size: 1em;
+    line-height: 1em;
+    color: #fff;
+}

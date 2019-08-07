@@ -1,0 +1,58 @@
+:host {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-flow: row;
+    padding: 1rem;
+    box-sizing: border-box;
+
+    @media only screen and (orientation: portrait) {
+        flex-flow: column;
+    }
+}
+
+.display-container,
+.ui-container {
+    position: relative;
+    margin: 0.666rem;
+}
+
+$display-container-width: 83%;
+.display-container {
+    width: $display-container-width;
+    height: auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    .display-video {
+        position: absolute;
+        top: 0;
+        left: 0;
+    }
+
+    @media only screen and (orientation: portrait) {
+        width: auto;
+        height: $display-container-width;
+    }
+}
+
+.ui-container {
+    width: 100% - $display-container-width;
+    height: auto;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+
+    @media only screen and (orientation: portrait) {
+        width: auto;
+        height: 100% - $display-container-width;
+        flex-flow: row;
+    }
+
+    & > * {
+        flex: 0 0 (100% / 3);
+    }
+}

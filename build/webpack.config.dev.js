@@ -1,37 +1,89 @@
 const path = require('path');
 const merge = require('webpack-merge');
 
-const HtmlWebpackPlugin = require('html-webpack-plugin');
-const WorkboxPlugin = require('workbox-webpack-plugin');
-const WebpackPwaManifest = require('webpack-pwa-manifest');
-
 const baseConfig = require('./webpack.config.base.js');
 
-const INDEX_HTML = path.resolve(__dirname, '../src/views/index.html');
+const COMPONENTS_ROOT = path.resolve(__dirname, '../src/components');
+const GLOBAL_STYLES_ROOT = path.resolve(__dirname, '../src/global-styles');
+
+const NODE_MODULES_DIR = /node_modules/;
+const OUTPUT_DIR = path.join(__dirname, '../dist');
 
 module.exports = merge(baseConfig, {
-    devtool: 'inline-source-map',
+    mode: 'development',
+    devtool: 'cheap-module-source-map',
     devServer: {
         port: 8080,
-        contentBase: path.join(__dirname, '../dist')
+        contentBase: OUTPUT_DIR,
+        compress: true,
+        overlay: true
     },
     module: {
         rules: [{
-            test: /\.(scss|css)$/,
+            test: /\.(ts|js)$/,
+            use: {
+                loader: 'babel-loader',
+                options: {
+                    presets: [
+                        ['@babel/preset-env', {
+                            targets: [
+                                'Edge >= 16',
+                                'Firefox >= 60',
+                                'Chrome >= 61',
+                                'Safari >= 11',
+                                'Opera >= 48'
+                            ]
+                        }]
+                    ]
+                }
+            }
+        }, {
+            test: /\.html$/,
+            include: [
+                COMPONENTS_ROOT
+            ],
             use: [{
-                // creates style nodes from JS strings
+                loader: 'html-loader'
+            }]
+        }, {
+            // Global styles
+            test: /\.(scss|css)$/,
+            include: [
+                GLOBAL_STYLES_ROOT
+            ],
+            use: [{
                 loader: 'style-loader',
                 options: {
                     sourceMap: true
                 }
             }, {
-                // translates CSS into CommonJS
                 loader: 'css-loader',
                 options: {
                     sourceMap: true
                 }
             }, {
-                // compiles Sass to CSS
+                loader: 'sass-loader',
+                options: {
+                    outputStyle: 'expanded',
+                    sourceMap: true,
+                    sourceMapContents: true
+                }
+            }]
+        }, {
+            // Component-level styles
+            test: /\.(scss|css)$/,
+            include: [
+                COMPONENTS_ROOT
+            ],
+            use: [{
+                loader: 'to-string-loader'
+            }, {
+                loader: 'css-loader',
+                options: {
+                    sourceMap: true,
+                    modules: false
+                }
+            }, {
                 loader: 'sass-loader',
                 options: {
                     outputStyle: 'expanded',
@@ -52,28 +104,5 @@ module.exports = merge(baseConfig, {
             }]
         }],
     },
-    plugins: [
-        new HtmlWebpackPlugin({
-            template: INDEX_HTML,
-            inject: true
-        }),
-        new WorkboxPlugin.GenerateSW({
-            clientsClaim: true,
-            skipWaiting: true
-        }),
-        new WebpackPwaManifest({
-            name: 'phacephold',
-            orientation: 'portrait',
-            display: 'standalone',
-            shortname: 'phold',
-            description: 'PHOLD YOUR PHACE',
-            theme_color: '#000',
-            background_color: '#000',
-            inject: true,
-            icons: [{
-                src: './src/assets/icon.png',
-                sizes: [96, 128, 192, 256, 384, 512] // multiple sizes
-            }]
-        }),
-    ]
+    plugins: []
 });
