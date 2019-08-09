@@ -1,4 +1,4 @@
-import { html, css, CSSResult, TemplateResult } from 'lit-element';
+import { html, css, svg } from 'lit-element';
 
 type TemplateArgs<T> = {
     [key: string]: T
@@ -10,25 +10,27 @@ type ArgsTypes<F extends Function> =
 
 type HTMLResultFunc = typeof html;
 type CSSResultFunc = typeof css;
-type ResultFunc = HTMLResultFunc | CSSResultFunc;
+type SVGResultFunc = typeof svg;
 
 type HTMLArgs = ArgsTypes<HTMLResultFunc>;
 type CSSArgs = ArgsTypes<CSSResultFunc>;
-type AnyArgs = HTMLArgs | CSSArgs;
+type SVGArgs = ArgsTypes<SVGResultFunc>;
 
 type HTMLTemplateArgs = TemplateArgs<HTMLArgs>;
 type CSSTemplateArgs = TemplateArgs<CSSArgs>;
+type SVGTemplateArgs = TemplateArgs<SVGArgs>;
 
 type TemplateStringsAndArgs<T> = {
     strings: TemplateStringsArray,
     evaluatedArgs: T[]
 };
 
+const TEMPLATE_REGEX = /\${(.*?)}/g;
+
 const arrayifyStringsAndArgs =
     <T>(template: string, templateArgs?: TemplateArgs<T>) => {
         const strings: string[] = [];
         const evaluatedArgs: T[] = [];
-        const TEMPLATE_REGEX = /\${(.*?)}/g;
 
         let start = 0;
         let end = 0;
@@ -82,4 +84,12 @@ export const cssify =
             arrayifyStringsAndArgs<CSSArgs>(template, templateArgs);
 
         return css(stringsAndArgs.strings, ...stringsAndArgs.evaluatedArgs);
+    }
+
+export const svgify =
+    (template: string, templateArgs?: SVGTemplateArgs) => {
+        const stringsAndArgs =
+            arrayifyStringsAndArgs<SVGArgs>(template, templateArgs);
+
+        return svg(stringsAndArgs.strings, ...stringsAndArgs.evaluatedArgs);
     }

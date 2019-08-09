@@ -15,6 +15,7 @@ const STATIC_DIR = path.resolve(__dirname, '../assets');
 const WEBCOMPONENTS_DIR = path.resolve(__dirname, '../node_modules/@webcomponents/webcomponentsjs');
 const BUILD_DIR = path.resolve(__dirname, '../dist');
 const BUILD_VENDOR_DIR = path.resolve(BUILD_DIR, 'vendor');
+const MIXIN_STYLES_DIR = path.resolve(__dirname, '../src/mixin-styles');
 
 module.exports = {
     entry: ENTRY,
@@ -58,6 +59,9 @@ module.exports = {
         plugins: [
             new TSConfigPathsPlugin()
         ],
+        alias: {
+            '@mixin-styles': MIXIN_STYLES_DIR
+        },
         extensions: [
             '.ts',
             '.js',

@@ -102,6 +102,15 @@ module.exports = merge(baseConfig, {
                     limit: 8192
                 }
             }]
+        }, {
+            test: /\.svg$/,
+            use: [{
+                loader: 'svg-inline-loader',
+                options: {
+                    classPrefix: 'phold',
+                    idPrefix: 'phold'
+                }
+            }]
         }],
     },
     plugins: []

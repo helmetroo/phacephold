@@ -2,12 +2,11 @@ import Source from './source';
 import Dimensions from './dimensions';
 
 export default class ImageSource extends Source {
-    private imageElement: HTMLImageElement;
+    private imageElement: HTMLImageElement = new Image();
 
     constructor(src: string) {
         super();
 
-        this.imageElement = new Image();
         this.imageElement.src = src;
     }
 
@@ -20,6 +19,10 @@ export default class ImageSource extends Source {
 
     public getRawSource() {
         return this.imageElement;
+    }
+
+    public getUrl() {
+        return this.imageElement.src;
     }
 
     public getDimensions() {

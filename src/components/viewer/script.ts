@@ -11,6 +11,7 @@ import { htmlify, cssify } from '@utils/resultify';
 
 import template from './template.html';
 import style from './style.scss';
+import ImageSource from '@classes/image-source';
 
 @customElement('phold-viewer')
 export default class Viewer extends LitElement {
@@ -21,7 +22,10 @@ export default class Viewer extends LitElement {
     public effect: OverlayEffect = new NoopOverlayEffect();
 
     @property({ type: Boolean })
-    public running: boolean = false;
+    public active: boolean = false;
+
+    @property({ type: Boolean })
+    public renderOnce: boolean = false;
 
     private ready: boolean = false;
 
@@ -41,16 +45,31 @@ export default class Viewer extends LitElement {
         this.dispatchEvent(readyEvent);
     }
 
+    private emitRenderEvent(renderImage: ImageSource) {
+        const renderEvent = new CustomEvent('viewer.render', {
+            detail: renderImage
+        });
+
+        this.dispatchEvent(renderEvent);
+    }
+
     public beginTick() {
         const tick = this.tick.bind(this);
         requestAnimationFrame(tick);
     }
 
     private tick() {
-        if(!this.running)
+        if(!this.active)
             return;
 
         this.draw();
+
+        if(this.renderOnce) {
+            const renderFrame =
+                this.renderPipeline.getFrameFromRenderCanvas();
+            this.emitRenderEvent(renderFrame);
+            return;
+        }
 
         const tick = this.tick.bind(this);
         requestAnimationFrame(tick);
@@ -64,7 +83,8 @@ export default class Viewer extends LitElement {
         this.renderPipeline.setSource(this.source);
         this.renderPipeline.setEffect(this.effect);
 
-        if(this.running)
+        const startTicking = this.active && !this.renderOnce;
+        if(startTicking)
             this.beginTick();
     }
 

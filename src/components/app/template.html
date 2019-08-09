@@ -5,13 +5,27 @@
 </phold-dialog>
 <div class="display-container" id="display-container">
     <phold-viewer
-        ?running="${runningViewer}"
+        ?active="${viewerActive}"
+        ?renderOnce="${renderViewerOnce}"
         .source="${currentSource}"
         .effect="${currentEffect}"
-        @viewer.ready="${onViewerReady}">
+        @viewer.ready="${onViewerReady}"
+        @viewer.render="${onViewerRender}">
     </phold-viewer>
+    <div class="${viewerBtnRowClasses}">
+        <phold-accept-button
+            .image="${lastRender}"
+            @accept-button.press="${onPressAcceptPhoto}">
+        </phold-accept-button>
+        <phold-reject-button
+            @reject-button.press="${onPressRejectPhoto}">
+        </phold-reject-button>
+    </div>
 </div>
 <div class="ui-container" id="ui-container">
+    <phold-choose-photo
+        @choose-photo.press="${onPressChoosePhoto}">
+    </phold-choose-photo>
     <phold-shutter
         @shutter.press="${onPressShutter}">
     </phold-shutter>

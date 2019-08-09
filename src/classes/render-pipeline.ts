@@ -4,6 +4,7 @@ import DisplayCanvas from './display-canvas';
 import OverlayEffect from './overlay-effect';
 import Source from './source';
 import Maybe from './maybe';
+import ImageSource from './image-source';
 
 export default class RenderPipeline {
     private currentSource: Maybe<Source> = Maybe.none<Source>();
@@ -31,7 +32,11 @@ export default class RenderPipeline {
     public async render() {
         await this.renderCanvas.draw();
         this.displayCanvas.drawFrameFrom(this.renderCanvas);
+    }
 
-        //this.fpsCounter.update();
+    public getFrameFromRenderCanvas() {
+        const renderCanvasElem = this.renderCanvas.getElement();
+        const dataUrl = renderCanvasElem.toDataURL('image/jpeg', 1);
+        return new ImageSource(dataUrl);
     }
 }

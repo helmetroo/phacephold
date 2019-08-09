@@ -1,0 +1,39 @@
+$button-color: #444;
+$button-border: #fff;
+
+@mixin viewer-button {
+    :host {
+        width: 8em;
+        height: 8em;
+    }
+
+    .viewer-button {
+        padding: 0;
+        border: none;
+        font: inherit;
+        color: inherit;
+        outline: none;
+        background-color: $button-color;
+        cursor: pointer;
+        border-radius: 50%;
+        width: 100%;
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 5px solid $button-border;
+
+        &:hover {
+            background-color: lighten($button-color, 10%);
+        }
+
+        &:active {
+            background-color: lighten($button-color, 30%);
+        }
+
+        .icon {
+            width: 75%;
+            height: 75%;
+        }
+    }
+}
