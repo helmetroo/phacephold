@@ -13,6 +13,8 @@ module.exports = merge(baseConfig, {
     mode: 'development',
     devtool: 'cheap-module-source-map',
     devServer: {
+        https: true,
+        host: '0.0.0.0',
         port: 8080,
         contentBase: OUTPUT_DIR,
         compress: true,

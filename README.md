@@ -75,7 +75,6 @@ npm run dev
 ## Preview
 
 `@commonshost/server` is used to serve a production build for preview purposes via a HTTP2 server.
-It also allows you to run the app from other devices on your network, say a mobile device connected to the same wireless router.
 
 ### Run preview server
 
