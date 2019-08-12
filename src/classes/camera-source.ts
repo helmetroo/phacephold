@@ -18,30 +18,48 @@ export default class CameraSource extends Source {
     }
 
     public async load() {
-        // TODO handle errors (i.e. user denies access)
         // There isn't a trivial way to get the highest resolution for a camera,
         // so we assume 4096x2160 is the highest for commercially available consumer webcams
-        const stream =
-            await navigator.mediaDevices.getUserMedia({
-                video: {
-                    width: {
-                        ideal: 4096
-                    },
+        try {
+            const stream =
+                await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: {
+                            ideal: 4096
+                        },
 
-                    height: {
-                        ideal: 2160
-                    },
+                        height: {
+                            ideal: 2160
+                        },
 
-                    facingMode: 'user'
-                }
-            });
+                        facingMode: 'user'
+                    }
+                });
 
-        this.cameraVideo.srcObject = stream;
-        await CameraSource.waitUntilLoaded(this.cameraVideo);
+            this.cameraVideo.srcObject = stream;
+            await CameraSource.waitUntilLoaded(this.cameraVideo);
 
-        this.cameraVideoDimensions = CameraSource.computeDimensions(this.cameraVideo);
+            this.cameraVideoDimensions = CameraSource.computeDimensions(this.cameraVideo);
 
-        this.loaded = true;
+            this.loaded = true;
+        } catch(err) {
+            const cameraAlreadyInUse =
+                (err.name === 'NotReadableError') || (err.name === 'TrackStartError');
+            if(cameraAlreadyInUse) {
+                const alreadyInUseErr = new Error(`Camera is unavailable for use. It's most likely being used by another app. To use it here, disable it in any apps that are using it and try reloading.`);
+                throw alreadyInUseErr;
+            }
+
+            const cameraRejected =
+                (err.name === 'NotAllowedError');
+            if(cameraRejected) {
+                const rejectedErr = new Error(`Camera is unavailable for use. If you didn't intend this, try reloading and allow the camera, or go into your page settings to allow the camera for this page.`);
+                throw rejectedErr;
+            }
+
+            const unknownErr = new Error(`Camera is unavailable due to an unknown reason.`);
+            throw unknownErr;
+        }
     }
 
     private static async waitUntilLoaded(cameraVideo: HTMLVideoElement) {
