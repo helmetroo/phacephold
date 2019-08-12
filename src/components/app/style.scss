@@ -70,7 +70,7 @@ $display-container-width: 83%;
     display: flex;
     flex-flow: column;
     align-items: center;
-    justify-content: center;
+    justify-content: space-around;
     z-index: 1;
 
     @media only screen and (orientation: portrait) {
@@ -80,6 +80,14 @@ $display-container-width: 83%;
     }
 
     & > * {
-        flex: 0 0 (100% / 3);
+        margin: 1em;
+        flex: 1 0 0px;
+
+        &:before {
+            content: '';
+            display: block;
+            padding-top: 100%;
+            float: left;
+        }
     }
 }

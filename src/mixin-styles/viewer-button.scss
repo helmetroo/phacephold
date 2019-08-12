@@ -1,3 +1,5 @@
+@import './blank-button';
+
 $button-color: #444;
 $button-border: #fff;
 
@@ -8,16 +10,9 @@ $button-border: #fff;
     }
 
     .viewer-button {
-        padding: 0;
-        border: none;
-        font: inherit;
-        color: inherit;
-        outline: none;
+        @include blank-button;
         background-color: $button-color;
-        cursor: pointer;
         border-radius: 50%;
-        width: 100%;
-        height: 100%;
         display: flex;
         align-items: center;
         justify-content: center;

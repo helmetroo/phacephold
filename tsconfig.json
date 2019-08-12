@@ -6,6 +6,7 @@
             "@components/*": ["components/*/script.ts"],
             "@assets/*": ["assets/*"],
             "@classes/*": ["classes/*"],
+            "@errors/*": ["classes/errors/*"],
             "@utils/*": ["utils/*"],
             "@global-styles": ["global-styles/index.scss"]
         },

@@ -12,10 +12,13 @@ import BlankSource from '@classes/blank-source';
 import OverlayEffect from '@classes/overlay-effect';
 import RenderEvent from '@classes/render-event';
 
+import CancellationError from '@errors/cancellation-error';
+
 import '@components/viewer';
 import '@components/dialog';
 import '@components/choose-photo';
 import '@components/shutter';
+import '@components/settings';
 import '@components/accept-button';
 import '@components/reject-button';
 
@@ -28,6 +31,13 @@ enum AppMode {
     LOCAL_IMAGE,
 }
 
+type ImageMode = AppMode.CAMERA_FRAME | AppMode.LOCAL_IMAGE;
+
+const IMAGE_MODE_TO_SOURCE_TYPE = {
+    [AppMode.CAMERA_FRAME]: SourceType.CAMERA_FRAME,
+    [AppMode.LOCAL_IMAGE]: SourceType.LOCAL_IMAGE
+}
+
 @customElement('phold-app')
 export default class App extends LitElement {
     @property({ type: Object })
@@ -38,6 +48,17 @@ export default class App extends LitElement {
 
     @property({ type: Boolean })
     private lastRenderSet: boolean = false;
+    private lastRender: ImageSource = new BlankSource();
+
+    @property({ type: Boolean })
+    private showingErrorMessage: boolean = false;
+    private errorMessage: string = '';
+
+    @property({ type: Boolean })
+    private viewerActive: boolean = false;
+
+    @property({ type: Boolean })
+    private renderViewerOnce: boolean = false;
 
     private mode: AppMode = AppMode.CAMERA;
 
@@ -46,13 +67,6 @@ export default class App extends LitElement {
 
     private sourceController: SourceController = new SourceController();
     private effectController: EffectController = new EffectController();
-
-    private showingErrorMessage: boolean = false;
-    private errorMessage: string = '';
-
-    private lastRender: ImageSource = new BlankSource();
-    private viewerActive: boolean = false;
-    private renderViewerOnce: boolean = false;
 
     constructor() {
         super();
@@ -92,6 +106,22 @@ export default class App extends LitElement {
         this.lastRenderSet = true;
     }
 
+    private onPressShutter() {
+        this.switchToImageMode(AppMode.CAMERA_FRAME);
+    }
+
+    private onPressChoosePhoto() {
+        this.switchToImageMode(AppMode.LOCAL_IMAGE);
+    }
+
+    private onPressAcceptPhoto() {
+        this.switchToCamera();
+    }
+
+    private onPressRejectPhoto() {
+        this.switchToCamera();
+    }
+
     private async switchToCamera() {
         try {
             const camera =
@@ -114,35 +144,17 @@ export default class App extends LitElement {
         this.viewerActive = true;
     }
 
-    private onPressShutter() {
-        this.switchToCameraFrame();
-    }
-
-    private onPressChoosePhoto() {
-
-    }
-
-    private onPressAcceptPhoto() {
-        this.switchToCamera();
-    }
-
-    private onPressRejectPhoto() {
-        this.switchToCamera();
-    }
-
-    private async switchToCameraFrame() {
-        if(this.mode === AppMode.CAMERA_FRAME)
-            return;
-
+    private async switchToImageMode(imageMode: ImageMode) {
         try {
             // Switch handlers called prematurely. Should actually do the switch when we say this.currentSource = cameraFrame
-            const cameraFrame =
-                await this.sourceController.switchTo(SourceType.CAMERA_FRAME);
+            const sourceMode = IMAGE_MODE_TO_SOURCE_TYPE[imageMode];
+            const imageSource =
+                await this.sourceController.switchTo(sourceMode);
 
             // To speed up, try rendering a smaller version of the video into a new canvas,
             // pass said canvas into this call.
             const faceLandmarkResult =
-                await this.faceDetector.findFaceLandmarks(cameraFrame);
+                await this.faceDetector.findFaceLandmarks(imageSource);
 
             if(!faceLandmarkResult) {
                 // Show error message that goes away within a few seconds
@@ -154,13 +166,17 @@ export default class App extends LitElement {
             const faceFlapsEffect =
                 this.effectController.getFaceFlaps(faceLandmarks);
 
-            this.currentSource = cameraFrame;
+            this.currentSource = imageSource;
             this.currentEffect = faceFlapsEffect;
             this.renderViewerOnce = true;
 
-            this.mode = AppMode.CAMERA_FRAME;
+            this.mode = imageMode;
         } catch(err) {
-            this.showErrorDialog(err);
+            const isNotCancellationErr = !(err instanceof CancellationError);
+            if(isNotCancellationErr)
+                this.showErrorDialog(err);
+
+            this.switchToCamera();
         }
     }
 
@@ -188,8 +204,10 @@ export default class App extends LitElement {
             onPressAcceptPhoto: this.onPressAcceptPhoto.bind(this),
             onPressRejectPhoto: this.onPressRejectPhoto.bind(this),
 
-            // Shutter
+            // Choose photo
             onPressChoosePhoto: this.onPressChoosePhoto.bind(this),
+
+            // Shutter
             onPressShutter: this.onPressShutter.bind(this)
         });
     }

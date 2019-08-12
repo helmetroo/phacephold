@@ -2,6 +2,7 @@ import Source from './source';
 import CameraSource from './camera-source';
 import ImageSource from './image-source';
 import BlankSource from './blank-source';
+import ChosenFileWaiter from './chosen-file-waiter';
 import Maybe from './maybe';
 
 export enum SourceType {
@@ -134,29 +135,15 @@ export default class SourceController {
     private async loadLocalImage() {
         const fileInput = document.createElement('input');
         fileInput.setAttribute('type', 'file');
-        fileInput.click();
 
         try {
-            const newImage = await new Promise<ImageSource>(
-                (resolve, reject) => {
-                    fileInput.onchange = () => {
-                        const choice =
-                            fileInput.files && fileInput.files[0];
+            const chosenFileWaiter = new ChosenFileWaiter(fileInput);
+            fileInput.click();
 
-                        if(!choice)
-                            return reject(new Error('No file selected.'));
-
-                        const imageUrl = URL.createObjectURL(choice);
-                        const image = new ImageSource(imageUrl);
-                        return resolve(image);
-                    };
-                }
-            );
-
+            const newImage = await chosenFileWaiter.waitForChosenImage();
             await newImage.waitUntilLoaded();
+
             this.currentImage = Maybe.some(newImage);
-        } catch(err) {
-            console.error(err);
         } finally {
             fileInput.remove();
         }
