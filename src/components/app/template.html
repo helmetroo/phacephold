@@ -23,12 +23,19 @@
     </div>
 </div>
 <div class="ui-container" id="ui-container">
-    <phold-choose-photo
-        @choose-photo.press="${onPressChoosePhoto}">
-    </phold-choose-photo>
-    <phold-shutter
-        @shutter.press="${onPressShutter}">
-    </phold-shutter>
-    <phold-settings>
-    </phold-settings>
+    <div class="ui-item">
+        <phold-choose-photo
+            ?active="${choosePhotoActive}"
+            @choose-photo.upload="${onUploadLocalImage}">
+        </phold-choose-photo>
+    </div>
+    <div class="ui-item">
+        <phold-shutter
+            @shutter.press="${onPressShutter}">
+        </phold-shutter>
+    </div>
+    <div class="ui-item">
+        <phold-settings>
+        </phold-settings>
+    </div>
 </div>

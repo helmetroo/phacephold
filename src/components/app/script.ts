@@ -4,15 +4,13 @@ import { classMap } from 'lit-html/directives/class-map';
 import { htmlify, cssify } from '@utils/resultify';
 
 import FaceDetector from '@classes/face-detector';
-import SourceController, { SourceType } from '@classes/source-controller';
+import SourceController from '@classes/source-controller';
 import EffectController from '@classes/effect-controller';
 import Source from '@classes/source';
 import ImageSource from '@classes/image-source';
 import BlankSource from '@classes/blank-source';
 import OverlayEffect from '@classes/overlay-effect';
-import RenderEvent from '@classes/render-event';
-
-import CancellationError from '@errors/cancellation-error';
+import ImageEvent from '@classes/image-event';
 
 import '@components/viewer';
 import '@components/dialog';
@@ -32,11 +30,6 @@ enum AppMode {
 }
 
 type ImageMode = AppMode.CAMERA_FRAME | AppMode.LOCAL_IMAGE;
-
-const IMAGE_MODE_TO_SOURCE_TYPE = {
-    [AppMode.CAMERA_FRAME]: SourceType.CAMERA_FRAME,
-    [AppMode.LOCAL_IMAGE]: SourceType.LOCAL_IMAGE
-}
 
 @customElement('phold-app')
 export default class App extends LitElement {
@@ -58,6 +51,9 @@ export default class App extends LitElement {
     private viewerActive: boolean = false;
 
     @property({ type: Boolean })
+    private choosePhotoActive: boolean = true;
+
+    @property({ type: Boolean })
     private renderViewerOnce: boolean = false;
 
     private mode: AppMode = AppMode.CAMERA;
@@ -71,9 +67,23 @@ export default class App extends LitElement {
     constructor() {
         super();
 
-        this.currentSource = this.sourceController.getCurrent();
+        this.currentSource = this.sourceController.getNoop();
         this.currentEffect = this.effectController.getNoop();
+
+        this.handleResizeEvents();
+
         this.initFaceDetector();
+    }
+
+    private handleResizeEvents() {
+        window.onresize = this.onResize.bind(this);
+        window.onorientationchange = this.onResize.bind(this);
+    }
+
+    private async onResize() {
+        await this.sourceController.reloadCamera();
+        if(this.mode === AppMode.CAMERA)
+            await this.switchToCamera();
     }
 
     private async initFaceDetector() {
@@ -97,46 +107,9 @@ export default class App extends LitElement {
         this.errorMessage = '';
     }
 
-    private onViewerReady() {
-        this.switchToCamera();
-    }
-
-    private onViewerRender(event: RenderEvent) {
-        this.lastRender = event.detail;
-        this.lastRenderSet = true;
-    }
-
-    private onPressShutter() {
-        this.switchToImageMode(AppMode.CAMERA_FRAME);
-    }
-
-    private onPressChoosePhoto() {
-        this.switchToImageMode(AppMode.LOCAL_IMAGE);
-    }
-
-    private onPressAcceptPhoto() {
-        this.switchToCamera();
-    }
-
-    private onPressRejectPhoto() {
-        this.switchToCamera();
-    }
-
-    private async switchToCamera() {
+    private async onViewerReady() {
         try {
-            const camera =
-                await this.sourceController.switchTo(SourceType.CAMERA);
-
-            const noopEffect =
-                this.effectController.getNoop();
-
-            this.currentSource = camera;
-            this.currentEffect = noopEffect;
-            this.renderViewerOnce = false;
-
-            this.mode = AppMode.CAMERA;
-            this.lastRender = new BlankSource();
-            this.lastRenderSet = false;
+            await this.switchToCamera();
         } catch(err) {
             this.showErrorDialog(err);
         }
@@ -144,40 +117,107 @@ export default class App extends LitElement {
         this.viewerActive = true;
     }
 
-    private async switchToImageMode(imageMode: ImageMode) {
+    private onViewerRender(event: ImageEvent) {
+        this.lastRender = event.detail;
+        this.lastRenderSet = true;
+    }
+
+    private onPressShutter() {
+        this.pauseCamera();
+        this.disableChoosePhotoButton();
+
         try {
-            // Switch handlers called prematurely. Should actually do the switch when we say this.currentSource = cameraFrame
-            const sourceMode = IMAGE_MODE_TO_SOURCE_TYPE[imageMode];
-            const imageSource =
-                await this.sourceController.switchTo(sourceMode);
-
-            // To speed up, try rendering a smaller version of the video into a new canvas,
-            // pass said canvas into this call.
-            const faceLandmarkResult =
-                await this.faceDetector.findFaceLandmarks(imageSource);
-
-            if(!faceLandmarkResult) {
-                // Show error message that goes away within a few seconds
-                const noFaceErr = new Error('No faces detected. Try recomposing your shot.');
-                throw noFaceErr;
-            }
-
-            const faceLandmarks = faceLandmarkResult.landmarks;
-            const faceFlapsEffect =
-                this.effectController.getFaceFlaps(faceLandmarks);
-
-            this.currentSource = imageSource;
-            this.currentEffect = faceFlapsEffect;
-            this.renderViewerOnce = true;
-
-            this.mode = imageMode;
+            this.switchToCameraFrame();
         } catch(err) {
-            const isNotCancellationErr = !(err instanceof CancellationError);
-            if(isNotCancellationErr)
-                this.showErrorDialog(err);
-
+            this.showErrorDialog(err);
+            this.enableChoosePhotoButton();
             this.switchToCamera();
         }
+    }
+
+    private pauseCamera() {
+        this.sourceController.pauseCamera();
+    }
+
+    private onUploadLocalImage(event: ImageEvent) {
+        this.pauseCamera();
+        this.disableChoosePhotoButton();
+
+        try {
+            const localImage = event.detail;
+            this.switchToLocalImage(localImage);
+        } catch(err) {
+            this.showErrorDialog(err);
+            this.enableChoosePhotoButton();
+        }
+    }
+
+    private onPressAcceptPhoto() {
+        this.enableChoosePhotoButton();
+        this.switchToCamera();
+    }
+
+    private onPressRejectPhoto() {
+        this.enableChoosePhotoButton();
+        this.switchToCamera();
+    }
+
+    private async switchToCameraFrame() {
+        const cameraFrame =
+            await this.sourceController.captureCameraFrame();
+        await this.createImageFrom(cameraFrame, AppMode.CAMERA_FRAME);
+        this.mode = AppMode.CAMERA_FRAME;
+    }
+
+    private async switchToCamera() {
+        const camera =
+            await this.sourceController.getCamera();
+
+        const noopEffect =
+            this.effectController.getNoop();
+
+        this.currentSource = camera;
+        this.currentEffect = noopEffect;
+        this.renderViewerOnce = false;
+
+        this.mode = AppMode.CAMERA;
+        this.lastRender = new BlankSource();
+        this.lastRenderSet = false;
+    }
+
+    private async switchToLocalImage(localImage: ImageSource) {
+        await this.sourceController.loadLocalImage(localImage);
+        await this.createImageFrom(localImage);
+        this.mode = AppMode.LOCAL_IMAGE;
+    }
+
+    private async createImageFrom(image: ImageSource) {
+        // To speed up, try rendering a smaller version of the video into a new canvas,
+        // pass said canvas into this call.
+        const faceLandmarkResult =
+            await this.faceDetector.findFaceLandmarks(image);
+
+        if(!faceLandmarkResult) {
+            // Show error message that goes away within a few seconds
+            const noFaceErr = new Error('No faces detected. Try again with another shot or image.');
+            throw noFaceErr;
+        }
+
+        const faceLandmarks = faceLandmarkResult.landmarks;
+        const faceFlapsEffect =
+            this.effectController.getFaceFlaps(faceLandmarks);
+
+        this.currentSource = image;
+        this.currentEffect = faceFlapsEffect;
+        this.renderViewerOnce = true;
+    }
+
+    private disableChoosePhotoButton() {
+        this.choosePhotoActive = false;
+    }
+
+    private enableChoosePhotoButton() {
+        this.choosePhotoActive = true;
     }
 
     public render() {
@@ -205,7 +245,8 @@ export default class App extends LitElement {
             onPressRejectPhoto: this.onPressRejectPhoto.bind(this),
 
             // Choose photo
-            onPressChoosePhoto: this.onPressChoosePhoto.bind(this),
+            choosePhotoActive: this.choosePhotoActive,
+            onUploadLocalImage: this.onUploadLocalImage.bind(this),
 
             // Shutter
             onPressShutter: this.onPressShutter.bind(this)

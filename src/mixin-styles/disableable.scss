@@ -1,0 +1,6 @@
+@mixin disableable {
+    &.disabled {
+        opacity: 0.33;
+        cursor: not-allowed;
+    }
+}

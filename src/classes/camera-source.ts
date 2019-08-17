@@ -5,6 +5,7 @@ export default class CameraSource extends Source {
     private static readonly IDENTIFIER = 'video-source';
 
     private cameraVideo: HTMLVideoElement;
+    private cameraStream: MediaStream | null | null;
     private cameraVideoDimensions: Dimensions | null = null;
 
     private loaded: boolean = false;
@@ -36,10 +37,11 @@ export default class CameraSource extends Source {
                     }
                 });
 
+            this.cameraStream = stream;
             this.cameraVideo.srcObject = stream;
             await CameraSource.waitUntilLoaded(this.cameraVideo);
 
-            this.cameraVideoDimensions = CameraSource.computeDimensions(this.cameraVideo);
+            this.cameraVideoDimensions = CameraSource.computeDimensions(this.cameraStream);
 
             this.loaded = true;
         } catch(err) {
@@ -57,7 +59,7 @@ export default class CameraSource extends Source {
                 throw rejectedErr;
             }
 
-            const unknownErr = new Error(`Camera is unavailable due to an unknown reason.`);
+            const unknownErr = new Error(`Camera is unavailable. ${err.message}`);
             throw unknownErr;
         }
     }
@@ -78,9 +80,9 @@ export default class CameraSource extends Source {
             this.cameraVideo.pause();
     }
 
-    private static computeDimensions(cameraVideo: HTMLVideoElement) {
-        const cameraVideoSrc = <MediaStream> cameraVideo.srcObject;
-        const cameraVideoTrackSettings = cameraVideoSrc.getVideoTracks()[0].getSettings();
+    private static computeDimensions(cameraStream: MediaStream) {
+        const cameraVideoTrack = CameraSource.getVideoTrack(cameraStream);
+        const cameraVideoTrackSettings = cameraVideoTrack.getSettings();
 
         const dimensions: Dimensions = {
             width: cameraVideoTrackSettings.width!,
@@ -90,11 +92,24 @@ export default class CameraSource extends Source {
         return dimensions;
     }
 
+    private static getVideoTrack(cameraStream: MediaStream) {
+        return cameraStream.getVideoTracks()[0];
+    }
+
     public getRawSource() {
         return this.cameraVideo;
     }
 
     public getDimensions() {
         return this.cameraVideoDimensions!;
+    }
+
+    public destroy() {
+        if(this.cameraStream) {
+            const cameraVideoTrack = CameraSource.getVideoTrack(this.cameraStream);
+            cameraVideoTrack.stop();
+        }
+
+        this.cameraVideo.remove();
     }
 }

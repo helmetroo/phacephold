@@ -1,5 +1,6 @@
-<button type="button" class="choose-photo-button" @click="${emitChoosePhotoEvent}">
+<label class="${classes}">
     <div class="icon">
         ${icon}
     </div>
-</button>
+    <input type="file" @change="${emitChoosePhotoEvent}" />
+</label>

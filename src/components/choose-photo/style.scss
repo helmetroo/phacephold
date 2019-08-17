@@ -1,10 +1,11 @@
 @import '@mixin-styles/blank-button';
-
-:host {
-    min-width: 6em;
-    min-height: 6em;
-}
+@import '@mixin-styles/disableable';
 
 .choose-photo-button {
     @include blank-button;
+    @include disableable;
+}
+
+input {
+    display: none;
 }

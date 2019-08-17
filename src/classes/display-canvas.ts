@@ -12,9 +12,6 @@ export default class DisplayCanvas {
         this.canvasElement = document.createElement('canvas');
         this.canvasElement.id = DisplayCanvas.CANVAS_ID;
         this.canvasElement.className = DisplayCanvas.CANVAS_ID;
-
-        // TODO on window resize, canvas dimensions need to change
-        //this.computeAndSetDimensions();
     }
 
     public mount(container: HTMLElement) {

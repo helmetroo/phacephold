@@ -60,9 +60,7 @@ export default class AcceptPhotoButton extends LitElement {
 
     private static dataURIToObjectURI(dataURI: string) {
         const blob = this.dataURIToBlob(dataURI);
-        return URL.createObjectURL(blob, {
-            type: 'application/octet-stream'
-        });
+        return URL.createObjectURL(blob);
     }
 
     private emitPressAcceptButtonEvent() {
