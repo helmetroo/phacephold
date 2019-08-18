@@ -5,11 +5,8 @@ const CleanWebpackPlugin = require('clean-webpack-plugin');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const TSConfigPathsPlugin = require('tsconfig-paths-webpack-plugin');
 
-//const INDEX_HTML = path.resolve(__dirname, '../src/views/index.html');
-const INDEX_HTML = path.resolve(__dirname, '../src/views/index-v2.html');
-
-//const ENTRY = path.resolve(__dirname, '../src/index.ts');
-const ENTRY = path.resolve(__dirname, '../src/index-v2.ts');
+const INDEX_HTML = path.resolve(__dirname, '../src/views/index.html');
+const ENTRY = path.resolve(__dirname, '../src/index.ts');
 
 const STATIC_DIR = path.resolve(__dirname, '../assets');
 const WEBCOMPONENTS_DIR = path.resolve(__dirname, '../node_modules/@webcomponents/webcomponentsjs');

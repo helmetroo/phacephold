@@ -76,22 +76,15 @@ $display-container-width: 83%;
     @media only screen and (orientation: portrait) {
         width: auto;
         height: 100% - $display-container-width;
-        flex-flow: row;
+        flex-flow: row-reverse;
     }
 
     .ui-item {
-        margin: 1rem;
         flex: 0 0 (100% / 3);
         display: flex;
         justify-content: center;
         align-items: center;
         box-sizing: border-box;
-
-        &:before {
-            content: '';
-            display: table;
-            padding-top: 100%;
-        }
 
         & > * {
             flex-grow: 1;
@@ -111,6 +104,21 @@ $display-container-width: 83%;
         phold-shutter {
             width: 10em;
             height: 10em;
+        }
+
+        @media only screen and (orientation: portrait) {
+            padding: 1rem;
+
+            phold-choose-photo,
+            phold-settings {
+                width: 4em;
+                height: 4em;
+            }
+
+            phold-shutter {
+                width: 7em;
+                height: 7em;
+            }
         }
     }
 }

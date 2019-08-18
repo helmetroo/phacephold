@@ -1,8 +1,8 @@
-@import '@mixin-styles/blank-button';
+@import '@mixin-styles/ui-button';
 @import '@mixin-styles/disableable';
 
 .choose-photo-button {
-    @include blank-button;
+    @include ui-button;
     @include disableable;
 }
 

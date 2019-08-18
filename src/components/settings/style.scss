@@ -1,5 +1,5 @@
-@import '@mixin-styles/blank-button';
+@import '@mixin-styles/ui-button';
 
 .settings-button {
-    @include blank-button;
+    @include ui-button;
 }

@@ -1,0 +1,11 @@
+@import '@mixin-styles/blank-button';
+
+@mixin ui-button {
+    @include blank-button;
+
+    .icon,
+    svg {
+        width: 100%;
+        height: 100%;
+    }
+}
