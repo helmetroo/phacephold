@@ -2,7 +2,8 @@
     "presets": [
         ["@babel/preset-env", {
             "modules": false,
-            "useBuiltIns": "usage"
+            "useBuiltIns": "entry",
+            "corejs": 3
         }],
         "@babel/preset-typescript"
     ],
@@ -10,6 +11,7 @@
         "@babel/plugin-transform-runtime",
         "@babel/proposal-class-properties",
         "@babel/proposal-object-rest-spread",
+        "@babel/plugin-syntax-dynamic-import",
         [
             "@babel/plugin-proposal-decorators", {
                 "decoratorsBeforeExport": true

@@ -165,7 +165,7 @@ export default class App extends LitElement {
     private async switchToCameraFrame() {
         const cameraFrame =
             await this.sourceController.captureCameraFrame();
-        await this.createImageFrom(cameraFrame, AppMode.CAMERA_FRAME);
+        await this.createImageFrom(cameraFrame);
         this.mode = AppMode.CAMERA_FRAME;
     }
 

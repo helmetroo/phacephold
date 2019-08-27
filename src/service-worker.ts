@@ -3,7 +3,6 @@ const runServiceWorker = () => {
         window.addEventListener('load', async () => {
             try {
                 await navigator.serviceWorker.register('/service-worker.js');
-                console.log('Registered worker!');
             } catch(err) {
                 console.error(err);
             }

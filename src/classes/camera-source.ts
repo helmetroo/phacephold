@@ -5,7 +5,7 @@ export default class CameraSource extends Source {
     private static readonly IDENTIFIER = 'video-source';
 
     private cameraVideo: HTMLVideoElement;
-    private cameraStream: MediaStream | null | null;
+    private cameraStream: MediaStream | null | null = null;
     private cameraVideoDimensions: Dimensions | null = null;
 
     private loaded: boolean = false;

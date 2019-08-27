@@ -1,69 +1,48 @@
 const path = require('path');
 const merge = require('webpack-merge');
 
-const baseConfig = require('./webpack.config.base.js');
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const OptimizeCssAssetsPlugin = require('optimize-css-assets-webpack-plugin');
 
+const baseConfig = require('./webpack.config.base.js');
+const createPostcssConfig = require('./postcss.config');
+
+const NODE_MODULES_DIR = /node_modules/;
 const COMPONENTS_ROOT = path.resolve(__dirname, '../src/components');
 const GLOBAL_STYLES_ROOT = path.resolve(__dirname, '../src/global-styles');
 
-const NODE_MODULES_DIR = /node_modules/;
-const OUTPUT_DIR = path.join(__dirname, '../dist');
-
 module.exports = merge(baseConfig, {
-    mode: 'development',
-    devtool: 'cheap-module-source-map',
-    devServer: {
-        https: true,
-        host: '0.0.0.0',
-        port: 8080,
-        contentBase: OUTPUT_DIR,
-        compress: true,
-        overlay: true
-    },
+    mode: 'production',
+    devtool: 'none',
     module: {
         rules: [{
             test: /\.(ts|js)$/,
             use: {
-                loader: 'babel-loader',
-                options: {
-                    presets: [
-                        ['@babel/preset-env', {
-                            targets: [
-                                'Edge >= 16',
-                                'Firefox >= 60',
-                                'Chrome >= 61',
-                                'Safari >= 11',
-                                'Opera >= 48'
-                            ]
-                        }]
-                    ]
-                }
+                // babel-env config inferred from browserslist
+                loader: 'babel-loader'
             }
         }, {
-            test: /\.html$/,
-            include: [
-                COMPONENTS_ROOT
-            ],
-            use: [{
-                loader: 'html-loader'
-            }]
-        }, {
-            // Global styles
-            test: /\.(scss|css)$/,
+            test: /\.(scss|sass|css)$/,
             include: [
                 GLOBAL_STYLES_ROOT
             ],
             use: [{
-                loader: 'style-loader',
-                options: {
-                    sourceMap: true
-                }
+                loader: MiniCssExtractPlugin.loader
             }, {
+                // translates CSS into CommonJS
                 loader: 'css-loader',
                 options: {
                     sourceMap: true
                 }
             }, {
+                // Runs compiled CSS through postcss for vendor prefixing
+                loader: 'postcss-loader',
+                options: {
+                    sourceMap: true,
+                    plugins: createPostcssConfig
+                }
+            }, {
+                // compiles Sass to CSS
                 loader: 'sass-loader',
                 options: {
                     outputStyle: 'expanded',
@@ -73,7 +52,7 @@ module.exports = merge(baseConfig, {
             }]
         }, {
             // Component-level styles
-            test: /\.(scss|css)$/,
+            test: /\.(scss|sass|css)$/,
             include: [
                 COMPONENTS_ROOT
             ],
@@ -84,6 +63,13 @@ module.exports = merge(baseConfig, {
                 options: {
                     sourceMap: true,
                     modules: false
+                }
+            }, {
+                // Runs compiled CSS through postcss for vendor prefixing
+                loader: 'postcss-loader',
+                options: {
+                    sourceMap: true,
+                    plugins: createPostcssConfig
                 }
             }, {
                 loader: 'sass-loader',
@@ -99,21 +85,27 @@ module.exports = merge(baseConfig, {
             use: [{
                 loader: 'url-loader',
                 options: {
-                    // On development we want to see where the file is coming from, hence we preserve the [path]
-                    name: '[path][name].[ext]?hash=[hash:20]',
+                    name: '[name].[hash:20].[ext]',
                     limit: 8192
                 }
             }]
-        }, {
-            test: /\.svg$/,
-            use: [{
-                loader: 'svg-inline-loader',
-                options: {
-                    classPrefix: 'phold',
-                    idPrefix: 'phold'
-                }
-            }]
-        }],
+        }]
     },
-    plugins: []
+    plugins: [
+        new MiniCssExtractPlugin({
+            filename: 'styles.[contenthash].css'
+        }),
+        new OptimizeCssAssetsPlugin({
+            cssProcessor: require('cssnano'),
+            cssProcessorOptions: {
+                map: {
+                    inline: false,
+                },
+                discardComments: {
+                    removeAll: true
+                }
+            },
+            canPrint: true
+        })
+    ]
 });

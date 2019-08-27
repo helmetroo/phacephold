@@ -1,7 +1,5 @@
-const autoprefixer = require('autoprefixer');
-
 const createPostcssConfig = () => [
-    autoprefixer
+    require('autoprefixer')
 ];
 
 module.exports = createPostcssConfig;

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <title><%= htmlWebpackPlugin.options.title %></title>
+      <% if (Array.isArray(htmlWebpackPlugin.options.meta)) { %>
+          <% for (item of htmlWebpackPlugin.options.meta) { %>
+              <meta<% for (key in item) { %> <%= key %>="<%= item[key] %>"<% } %>>
+          <% } %>
+      <% } %>
+      <% for (key in htmlWebpackPlugin.files.css) { %>
+          <link href="<%= htmlWebpackPlugin.files.css[key] %>" rel="stylesheet" media="nope!" onload="this.media='all'">
+      <% } %>
+
+      <script>
+       if(!window.customElements) {
+           document.write('<!--');
+       }
+      </script>
+      <script src="./vendor/custom-elements-es5-adapter.js"></script>
+      <!-- ! DO NOT REMOVE THIS COMMENT, WE NEED ITS CLOSING MARKER -->
+
+      <script src="./vendor/webcomponents-loader.js" defer></script>
+  </head>
+
+  <body>
+  <script type="module">
+            <% for (key in htmlWebpackPlugin.options.modernScripts) { %>
+                var script<%= [key] %> = document.createElement('script');
+                script<%= [key] %>.type = 'text/javascript';
+                script<%= [key] %>.src = '<%= htmlWebpackPlugin.options.modernScripts[key] %>';
+                document.body.appendChild(script<%= [key] %>);
+            <% } %>
+  </script>
+
+    <script nomodule>
+            <% for (key in htmlWebpackPlugin.options.legacyScripts) { %>
+                var script<%= [key] %> = document.createElement('script');
+                script<%= [key] %>.type = 'text/javascript';
+                script<%= [key] %>.src = '<%= htmlWebpackPlugin.options.legacyScripts[key] %>';
+                document.body.appendChild(script<%= [key] %>);
+            <% } %>
+    </script>
+
+    <noscript>
+        Please enable JavaScript to run this app.
+    </noscript>
+
+  </body>
+</html>

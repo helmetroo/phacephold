@@ -36,7 +36,7 @@ export default class ChoosePhoto extends LitElement {
             return;
 
         const target = <HTMLInputElement> event.target;
-        const file = target.files[0];
+        const file = target.files && target.files[0];
         if(!file)
             return;
 

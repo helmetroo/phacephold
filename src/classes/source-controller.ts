@@ -71,7 +71,7 @@ export default class SourceController {
 
                 const tempCanvasContext = tempCanvas.getContext('2d');
                 if(!tempCanvasContext)
-                    return;
+                    return SourceController.BLANK;
 
                 const cameraData = camera.getRawSource();
                 tempCanvasContext.drawImage(cameraData, 0, 0);
