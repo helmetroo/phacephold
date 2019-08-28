@@ -27,8 +27,22 @@ export default class AcceptPhotoButton extends LitElement {
     }
 
     private onPressAcceptButton() {
-        this.downloadImage();
+        this.openOrDownloadImage();
         this.emitPressAcceptButtonEvent();
+    }
+
+    private openOrDownloadImage() {
+        // Download supposedly supported on iOS 13
+        const iosMajorVersion = AcceptPhotoButton.getIosMajorVersion();
+        const openImage = (iosMajorVersion !== false) && (iosMajorVersion <= 12);
+        (openImage)
+            ? this.openImage()
+            : this.downloadImage();
+    }
+
+    private openImage() {
+        const imageDataUrl = this.image.getUrl();
+        window.open(imageDataUrl);
     }
 
     private downloadImage() {
@@ -42,6 +56,19 @@ export default class AcceptPhotoButton extends LitElement {
             URL.revokeObjectURL(imageBlobUrl);
             anchorElement.removeAttribute('href');
         });
+    }
+
+    // from https://stackoverflow.com/a/14223920
+    private static getIosMajorVersion() {
+        if(/iP(hone|od|ad)/.test(navigator.platform)) {
+            const version = (navigator.appVersion).match(/OS (\d+)_(\d+)_?(\d+)?/);
+            if(!version)
+                return false;
+
+            return parseInt(version[1], 10);
+        }
+
+        return false;
     }
 
     // from https://developer.mozilla.org/en-US/docs/Web/API/HTMLCanvasElement/toBlob#Polyfill,
