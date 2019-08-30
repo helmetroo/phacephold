@@ -44,4 +44,19 @@ const boot = async () => {
     loader.setAttribute('hidden', '');
 }
 
+const bootServiceWorker = () => {
+    if('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+            try {
+                await navigator.serviceWorker.register('/service-worker.js');
+            } catch(err) {
+                console.error(err);
+            }
+        });
+    }
+}
+
 onLoadWebComponents(boot);
+
+if(SERVICE_WORKER_ENABLED)
+    bootServiceWorker();

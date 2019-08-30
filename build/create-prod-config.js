@@ -1,3 +1,4 @@
+const path = require('path');
 const { smart } = require('webpack-merge');
 
 const commonConfig = require('./common.config');

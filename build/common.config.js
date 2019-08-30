@@ -146,7 +146,7 @@ const config = {
             logo: LOGO,
             cache: true,
             inject: true,
-            prefix: 'icons-[hash]/',
+            prefix: 'icons/',
             favicons: {
                 background: '#000',
                 theme_color: '#000',

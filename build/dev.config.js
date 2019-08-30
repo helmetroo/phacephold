@@ -3,7 +3,8 @@ const fs = require('fs');
 
 const {
     Configuration,
-    HotModuleReplacementPlugin
+    HotModuleReplacementPlugin,
+    DefinePlugin
 } = require('webpack');
 
 const HtmlWebpackPlugin = require('html-webpack-plugin');
@@ -78,6 +79,10 @@ const config = {
         }]
     },
     plugins: [
+        new DefinePlugin({
+            SERVICE_WORKER_ENABLED: false
+        }),
+
         new HotModuleReplacementPlugin(),
 
         // TODO how can we properly combine plugin options with webpack-merge?

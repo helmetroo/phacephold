@@ -1,3 +1,5 @@
+const WebpackModuleNomodulePlugin = require('webpack-module-nomodule-plugin');
+
 // Polyfills like @babel/polyfill should go here as entries
 const config = {
     output: {
@@ -16,6 +18,10 @@ const config = {
             },
         }]
     },
+
+    plugins: [
+        new WebpackModuleNomodulePlugin('legacy')
+    ]
 };
 
 module.exports = config;

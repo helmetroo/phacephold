@@ -1,3 +1,5 @@
+const WebpackModuleNomodulePlugin = require('webpack-module-nomodule-plugin');
+
 const config = {
     output: {
         filename: '[name].mjs'
@@ -15,6 +17,10 @@ const config = {
             },
         }]
     },
+
+    plugins: [
+        new WebpackModuleNomodulePlugin('modern')
+    ]
 };
 
 module.exports = config;
