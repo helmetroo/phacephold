@@ -1,4 +1,5 @@
 @import '@mixin-styles/hideable';
+@import '@mixin-styles/invisible';
 
 :host {
     width: 100%;
@@ -80,6 +81,7 @@ $display-container-width: 83%;
     }
 
     .ui-item {
+        @include invisible;
         flex: 0 0 (100% / 3);
         display: flex;
         justify-content: center;

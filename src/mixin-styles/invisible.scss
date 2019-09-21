@@ -1,0 +1,5 @@
+@mixin invisible {
+    &.invisible {
+        visibility: hidden;
+    }
+}
