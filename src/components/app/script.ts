@@ -122,12 +122,12 @@ export default class App extends LitElement {
         this.lastRenderSet = true;
     }
 
-    private onPressShutter() {
+    private async onPressShutter() {
         this.pauseCamera();
         this.disableChoosePhotoButton();
 
         try {
-            this.switchToCameraFrame();
+            await this.switchToCameraFrame();
         } catch(err) {
             this.showErrorDialog(err);
             this.enableChoosePhotoButton();
@@ -139,13 +139,13 @@ export default class App extends LitElement {
         this.sourceController.pauseCamera();
     }
 
-    private onUploadLocalImage(event: ImageEvent) {
+    private async onUploadLocalImage(event: ImageEvent) {
         this.pauseCamera();
         this.disableChoosePhotoButton();
 
         try {
             const localImage = event.detail;
-            this.switchToLocalImage(localImage);
+            await this.switchToLocalImage(localImage);
         } catch(err) {
             this.showErrorDialog(err);
             this.enableChoosePhotoButton();
@@ -226,7 +226,7 @@ export default class App extends LitElement {
             'hidden': !this.lastRenderSet
         });
 
-        return htmlify(template, {
+        const templateArgs = {
             // Dialog
             showingErrorMessage: this.showingErrorMessage,
             errorMessage: this.errorMessage,
@@ -250,7 +250,9 @@ export default class App extends LitElement {
 
             // Shutter
             onPressShutter: this.onPressShutter.bind(this)
-        });
+        };
+
+        return htmlify(template, templateArgs);
     }
 
     public static get styles() {

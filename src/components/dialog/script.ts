@@ -9,10 +9,10 @@ import style from './style.scss';
 @customElement('phold-dialog')
 export default class Dialog extends LitElement {
     @property({ type: String })
-    message = '';
+    public message: string = '';
 
     @property({ type: Boolean })
-    active = false;
+    public active: boolean = false;
 
     public render() {
         const templateArgs = {
@@ -30,6 +30,12 @@ export default class Dialog extends LitElement {
 
     private onClose() {
         this.active = false;
+        this.dispatchCloseEvent();
+    }
+
+    private dispatchCloseEvent() {
+        const closeEvent = new CustomEvent('dialog.close');
+        this.dispatchEvent(closeEvent);
     }
 
     public static get styles() {
