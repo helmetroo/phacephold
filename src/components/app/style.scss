@@ -88,6 +88,10 @@ $display-container-width: 83%;
         align-items: center;
         box-sizing: border-box;
 
+        &.scale-locked {
+            flex: 0 0;
+        }
+
         & > * {
             flex-grow: 1;
             display: flex;
@@ -113,13 +117,13 @@ $display-container-width: 83%;
 
             phold-choose-photo,
             phold-settings {
-                width: 4em;
-                height: 4em;
+                width: 5em;
+                height: 5em;
             }
 
             phold-shutter {
-                width: 7em;
-                height: 7em;
+                width: 6em;
+                height: 6em;
             }
         }
     }
