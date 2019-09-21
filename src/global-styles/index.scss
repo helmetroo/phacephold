@@ -1,3 +1,5 @@
+@import '@mixin-styles/font-declaration';
+
 :root {
     width: 100%;
     height: 100%;
@@ -5,9 +7,9 @@
 }
 
 body {
+    @include font-declaration;
     width: 100%;
     height: 100%;
-    font-family: monospace;
     display: block;
     margin: 0;
     overflow: hidden;
