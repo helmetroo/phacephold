@@ -18,7 +18,7 @@ const COMPONENTS_ROOT = path.join(SRC_ROOT, './components');
 const GLOBAL_STYLES_ROOT = path.join(SRC_ROOT, './global-styles');
 const MIXIN_STYLES_DIR = path.join(SRC_ROOT, './mixin-styles');
 
-const BUILD_DIR = path.resolve(__dirname, '../dist');
+const BUILD_DIR = path.resolve(__dirname, '../public');
 const BUILD_VENDOR_DIR = path.join(BUILD_DIR, './vendor');
 const BUILD_VENDOR_BUNDLES_DIR = path.join(BUILD_DIR, './vendor/bundles');
 
