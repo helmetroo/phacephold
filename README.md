@@ -1,9 +1,9 @@
-# phacephold
-
 <a name="deprecation-notice"></a>
 # 💀 DEPRECATED 💀
 
-**I rewrote this app! Please check out [phold](https://github.com/helmetroo/phold)!**
+## I rewrote this app! Please check out [phold](https://github.com/helmetroo/phold)!
+
+# phacephold
 
 **Realtime visual app based on face folding inspired by Aphex Twin's [promotional images for Syro](https://en.wikipedia.org/wiki/Syro#Release) and live shows that runs in the browser**
 
